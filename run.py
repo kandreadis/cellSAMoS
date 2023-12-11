@@ -92,7 +92,7 @@ parameters = {
 }
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-dim", "--dimension", type=str, default="1D", help="dimensionality of parameter sweep")
+parser.add_argument("-dim", "--dimension", type=str, default="2D", help="dimensionality of parameter sweep")
 args = parser.parse_args()
 
 sweep_type = args.dimension
@@ -105,7 +105,7 @@ parameter_1D_sweep = {
     "var_1_end":1.2,
     "var_1_num":10,
 }
-parameter_2D_sweep = {
+parameter_2D_sweep_old = {
     "var_1":"cell_division_rate",
     "var_1_short":"div",
     "var_1_type":"linear", #"linear"
@@ -119,6 +119,22 @@ parameter_2D_sweep = {
     "var_2_start":0.1,
     "var_2_end":0.3,
     "var_2_num":10
+}
+
+parameter_2D_sweep = {
+    "var_1":"re_fact",
+    "var_1_short":"div",
+    "var_1_type":"linear", #"linear"
+    "var_1_start":0.01,
+    "var_1_end":1,
+    "var_1_num":2,
+
+    "var_2":"propulsion_alpha",
+    "var_2_short":"alpha",
+    "var_2_type":"linear", #"log"
+    "var_2_start":0.1,
+    "var_2_end":0.3,
+    "var_2_num":2
 }
 
 if sweep_type == "1D":
