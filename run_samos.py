@@ -2,35 +2,33 @@
 Executes SAMoS with initial (particle) configuration parameter ranges/values.
 Author: Konstantinos Andreadis
 """
-import os, re, datetime, argparse
+import os, re, datetime, argparse, sys
 from datetime import datetime as date
-import initialise_cells as init_cells
 import numpy as np
+
+import samos_init.initialise_cells as init_cells
+from scripts.communication_handler import Logger
+
+sys.stdout = Logger()
 
 # Specify the path to the samos executable
 samos_dir="/home/andreadis/Documents/samos_build/build/samos"
 
 # Uses root directory to find the Python and configuration script inside "CellSim"
 root_dir=os.getcwd()
-configuration_file = os.path.join(root_dir, "CellSim", "spheroid.conf")
-intialisation_file = os.path.join(root_dir, "CellSim", "initialise_cells.py")
-progress_msg_file = os.path.join(root_dir,"Dropbox","progress.txt")
+configuration_file = os.path.join(root_dir, "CellSim", "samos_init", "spheroid.conf")
+intialisation_file = os.path.join(root_dir, "CellSim", "samos_init", "initialise_cells.py")
 
-def print_save_message(message):
-    with open(progress_msg_file, "a") as progress_file:
-        progress_file.write("["+datetime.datetime.now().strftime('%Y/%m/%d %H:%M')+"] "+message+"\n")
-    print(message)
-
-print_save_message("=== Start ===")
+print("=== Start ===")
 
 def run_simulation(parameters,session, naming_conv, run_samos=True):
     parameters["cell_count"] = int(parameters["cell_count"])
-    # The result path is initialised with a datestamp inside "results"
-    result_dir=os.path.join(root_dir,"results",date.today().strftime("%Y%m%d"),session, naming_conv)
+    # The result path is initialised with a datestamp inside "samos_output"
+    result_dir=os.path.join(root_dir,"samos_output",date.today().strftime("%Y%m%d"),session, naming_conv)
     try:
         os.makedirs(result_dir)
     except:
-        print_save_message("Result directory already exists, overwriting...")
+        print("Result directory already exists, overwriting...")
 
     # Creates path for copied configuration file
     new_configuration_dir = os.path.join(result_dir,"configuration.conf")
@@ -44,7 +42,7 @@ def run_simulation(parameters,session, naming_conv, run_samos=True):
         # Copies initialisation Python script to results folder.
         os.system(f"cp {intialisation_file} {new_initialisation_dir}")
     except:
-        print_save_message("Could not copy file to result directory...")
+        print("Could not copy file to result directory...")
 
     with open(new_configuration_dir, "r+") as conf_file:
         configuration = conf_file.read()
@@ -66,36 +64,48 @@ def run_simulation(parameters,session, naming_conv, run_samos=True):
     try:
         os.chdir(result_dir)
     except:
-        print_save_message("Could not move to result directory...")
+        print("Could not move to result directory...")
 
     if run_samos:
         try:
-            print_save_message("Executing SAMoS...")
+            print("Executing SAMoS...")
             os.system(f"{samos_dir} {new_configuration_dir}")
         except:
-            print_save_message("Could not locate SAMoS executable...")
-    print_save_message(f"Finished! Location of results: {result_dir}")
+            print("Could not locate SAMoS executable...")
+    print(f"Finished! Location of results: {result_dir}")
 
 # Start of multi-parameter SAMoS execution
 
 parameters = {
-    "num_time_steps":20000,
+    "num_time_steps":50000,
     "cell_count":500,
     "spheroid_radius":8.735,
     "cell_radius":1.0,
     "cell_radius_poly":0.3,
 
     "cell_division_rate":0.1,
-    "propulsion_alpha":0.1,
+    "propulsion_alpha":0.15,
     "re_fact":1.15,
     "plot_config":False
 }
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-dim", "--dimension", type=str, default="2D", help="dimensionality of parameter sweep")
+parser.add_argument("-dim", "--dimension", type=str, default="None", help="dimensionality of parameter sweep")
 args = parser.parse_args()
 
 sweep_type = args.dimension
+
+if sweep_type == "None":
+    print("!! Running single simulation without sweep")
+    param_pair_label = "t-{}_N-{}_{}-{}_{}-{}_{}-{}".format(parameters["num_time_steps"], 
+                                                parameters["cell_count"],"div", parameters["cell_division_rate"],
+                                                "alpha", parameters["propulsion_alpha"], "re", parameters["re_fact"])
+    session_label = "no_sweep_" + datetime.datetime.now().strftime('%Y%m%d_%H-%M')
+    
+    run_simulation(parameters=parameters,naming_conv=param_pair_label,session=session_label,run_samos=True)
+
+
+
 
 parameter_1D_sweep = {
     "var_1":"re_fact",
@@ -151,7 +161,7 @@ if sweep_type == "1D":
         progress = f"{round(100*iter/(len(var_1_range)))} %"
         status = "{} {}".format(parameter_1D_sweep["var_1"],var1)
         progress_msg = f"[{progress}] --- {status} ---"
-        print_save_message(progress_msg)
+        print(progress_msg)
         parameters[parameter_1D_sweep["var_1"]] = var1
         param_pair_label = "t-{}_N-{}_{}-{}".format(parameters["num_time_steps"], parameters["cell_count"],parameter_1D_sweep["var_1_short"],var1)
         run_simulation(parameters=parameters,naming_conv=param_pair_label,session=session_label,run_samos=True)
@@ -180,9 +190,9 @@ if sweep_type == "2D":
             progress = f"{round(100*iter/(len(var_1_range)*len(var_2_range)))} %"
             status = "{} {} {} {}".format(parameter_2D_sweep["var_1"],var1, parameter_2D_sweep["var_2"],var2)
             progress_msg = f"[{progress}] --- {status} ---"
-            print_save_message(progress_msg)
+            print(progress_msg)
             parameters[parameter_2D_sweep["var_1"]] = var1
             parameters[parameter_2D_sweep["var_2"]] = var2
             param_pair_label = "t-{}_N-{}_{}-{}_{}-{}".format(parameters["num_time_steps"], parameters["cell_count"],parameter_2D_sweep["var_1_short"],var1,parameter_2D_sweep["var_2_short"], var2)
             run_simulation(parameters=parameters,naming_conv=param_pair_label,session=session_label,run_samos=True)
-print_save_message("=== End ===")
+print("=== End ===")

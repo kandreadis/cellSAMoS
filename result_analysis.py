@@ -3,12 +3,15 @@ Visualisation and Analysis of SAMoS simulation results.
 Author: Konstantinos Andreadis
 """
 
-import os
+import os, sys
 import numpy as np
 import pandas as pd
 from scripts.data_handler import read_dat, read_xyz, add_result, add_var
 from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot, plot_boxplot
 from scripts.analyse_geometry import calc_radius_gyration
+
+from scripts.communication_handler import Logger
+sys.stdout = Logger()
 
 print("=== Start ===")
 
@@ -50,6 +53,7 @@ def analyse_folder(root, path):
 
     show = False
     plot_boxplot(session=path, data=result_df, x="time frame", y="cell count", hue=None, show=show)
+    plot_lineplot(session=path, data=result_df, x="time frame", y="radius of gyration", hue=None, style=None, show=show)
 
     if "potential re factor" in list(result_df.columns):
         plot_lineplot(session=path, data=result_df, x="time frame", y="cell count", hue="potential re factor", style=None, show=show)
@@ -77,9 +81,13 @@ vars_select = {
     4:["re", "potential re factor", float],
 }
 
-# result_root = "/data1/andreadis/results/20231208"
-result_root = "/data1/andreadis/results/20231211"
+result_root = "/data1/andreadis/samos_output/20231208"
+analyse_root_subfolders(result_root)
 
+result_root = "/data1/andreadis/samos_output/20231211"
+analyse_root_subfolders(result_root)
+
+result_root = "/data1/andreadis/samos_output/20231212"
 analyse_root_subfolders(result_root)
 
 print("=== End ===")
