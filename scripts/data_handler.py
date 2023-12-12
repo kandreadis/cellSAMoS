@@ -35,7 +35,7 @@ def add_var(target, vars, var_short, var_long, var_type=float):
     for var in vars:
         if var_short in var:
             if var_type == int:
-                var_val = int(var.split("-")[-1])
+                var_val = int(float(var.split("-")[-1]))
             if var_type == float:
                 var_val = float(var.split("-")[-1])
             add_result(target=target,tag=var_long,item=var_val)

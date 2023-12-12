@@ -9,7 +9,6 @@ import pandas as pd
 from scripts.data_handler import read_dat, read_xyz, add_result, add_var
 from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot, plot_boxplot
 from scripts.analyse_geometry import calc_radius_gyration
-
 from scripts.communication_handler import Logger
 sys.stdout = Logger()
 
@@ -62,7 +61,8 @@ def analyse_folder(root, path):
     if "cell division rate" in list(result_df.columns) and "propulsion alpha" in list(result_df.columns):
         plot_lineplot(session=path, data=result_df, x="time frame", y="cell count", hue="propulsion alpha", style=None, show=show)
         plot_lineplot(session=path, data=result_df, x="time frame", y="cell count", hue="cell division rate", style=None, show=show)
-        result_df_last_time = result_df.groupby("time frame").get_group(30000)
+        print("Last time frame index: {}".format(max(result_df["time frame"])))
+        result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
         plot_heatmap(session=path,data=result_df_last_time,rows="cell division rate", columns="propulsion alpha",values="cell count", show=show)
         plot_heatmap(session=path,data=result_df_last_time,rows="cell division rate", columns="propulsion alpha", values="radius of gyration", show=show)
 
@@ -80,12 +80,6 @@ vars_select = {
     3:["alpha", "propulsion alpha", float],
     4:["re", "potential re factor", float],
 }
-
-result_root = "/data1/andreadis/samos_output/20231208"
-analyse_root_subfolders(result_root)
-
-result_root = "/data1/andreadis/samos_output/20231211"
-analyse_root_subfolders(result_root)
 
 result_root = "/data1/andreadis/samos_output/20231212"
 analyse_root_subfolders(result_root)

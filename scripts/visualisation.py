@@ -3,13 +3,13 @@ Collection of independent functions that visualise results.
 Author: Konstantinos Andreadis
 """
 
-import os
+import os, datetime
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 def save_path(session_label, plot_label):
     root_dir=os.getcwd()
-    save_dir = os.path.join(root_dir, "analysis_results", "figures", session_label)
+    save_dir = os.path.join(root_dir, "analysis_results", "figures", session_label+"__"+datetime.datetime.now().strftime('%Y%m%d_%H-%M'))
     try:
         os.makedirs(save_dir)
     except:
@@ -49,7 +49,6 @@ def plot_lineplot(session, data, x,y,hue,style, show=True, savedpi=300):
     plot_handler(show)
 
 def plot_heatmap(session, data, rows, columns,values,show=True,cmap="coolwarm",savedpi=300):
-    
     plt.figure(figsize=(10,10))
     plt.title(f"{values} for {rows} vs. {columns} \n {session}")
     pivot_result = data.pivot(index=rows, columns=columns, values=values)
