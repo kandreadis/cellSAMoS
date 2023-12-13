@@ -12,8 +12,8 @@ from scripts.communication_handler import print_log
 
 def parse_user_input():
     """
-    Parse user input parameters when running this script using bash commands (terminal).
-    :return: Default/chosen run parameters
+    Parse user input global_parameters when running this script using bash commands (terminal).
+    :return: Default/chosen run global_parameters
     :rtype: Parser arguments
     """
     parser = argparse.ArgumentParser()
