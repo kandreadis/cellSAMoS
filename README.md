@@ -35,13 +35,24 @@ pip install PACKAGE
 ```
 
 ## Usage
+Documentation in progres...
+
+```bash
+python PATH_TO/run_samos.py
+```
+
+Documentation in progres...
+```bash
+python PATH_TO/analyse_results.py
+```
 
 ## Project Folder Structure
-
+Documentation in progres...
 ## How to contribute
-
+Documentation in progres...
 ## Acknowledgements
-
+Documentation in progres...
 ## Contact Information
-
+Documentation in progres...
 ## License
+Documentation in progres...
