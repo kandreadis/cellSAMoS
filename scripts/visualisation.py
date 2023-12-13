@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 def save_path(session_label, plot_label):
     root_dir=os.getcwd()
-    save_dir = os.path.join(root_dir, "analysis_results", "figures", session_label+"__"+datetime.datetime.now().strftime('%Y%m%d_%H-%M'))
+    save_dir = os.path.join(root_dir, "analysis_results", "figures",datetime.datetime.now().strftime('%Y%m%d'), session_label)
     try:
         os.makedirs(save_dir)
     except:

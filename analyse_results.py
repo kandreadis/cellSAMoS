@@ -73,7 +73,7 @@ def analyse_root_subfolders(path):
         print(f"-- {result_batch_root} --")
         analyse_folder(path, result_batch_root)
 
-vars_select = {
+vars_select = { # folder short version of variable, label for plotting, type (float/int)
     0:["N", "initial cell count", int],
     1:["t", "# time steps", int],
     2:["div", "cell division rate", float],
@@ -81,7 +81,7 @@ vars_select = {
     4:["re", "potential re factor", float],
 }
 
-result_root = "/data1/andreadis/samos_output/20231212"
+result_root = "/data1/andreadis/samos_output/20231212_queue"
 analyse_root_subfolders(result_root)
 
 print("=== End ===")
