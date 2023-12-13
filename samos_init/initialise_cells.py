@@ -67,41 +67,44 @@ class Spheroid:
     A spheroid is initialised using a population(collective) of cells.
     """
 
-    def __init__(self, spheroid_radius, cell_count, cell_radius,poly):
+    def __init__(self, spheroid_radius, cell_count, cell_radius, poly):
         self.R = spheroid_radius
         self.N = cell_count
         self.poly = poly
 
         self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(cell_count))]
-        def un(a,b):
-            return np.random.uniform(a,b)
+
+        def un(a, b):
+            return np.random.uniform(a, b)
+
         for cell in self.cells:
-            phi = un(0, 2*np.pi)
+            phi = un(0, 2 * np.pi)
             costheta = un(-1, 1)
             theta = np.arccos(costheta)
-            r = spheroid_radius * un(0,1)**(1./3.)
+            r = spheroid_radius * un(0, 1) ** (1. / 3.)
             x = r * np.sin(theta) * np.cos(phi)
             y = r * np.sin(theta) * np.sin(phi)
             z = r * np.cos(theta)
 
             vx, vy, vz = 0, 0, 0
-            nx, ny, nz = 0, 0, 0
-            phi = un(0, 2*np.pi)
+            phi = un(0, 2 * np.pi)
             costheta = un(-1, 1)
-            nx = np.cos(phi)*np.sin(np.arccos(costheta))
-            ny = np.sin(phi)*np.sin(np.arccos(costheta))
+            nx = np.cos(phi) * np.sin(np.arccos(costheta))
+            ny = np.sin(phi) * np.sin(np.arccos(costheta))
             nz = costheta
-            cell.cell_radius = cell_radius*un(1-0.5*self.poly,1+0.5*self.poly)
+            cell.cell_radius = cell_radius * un(1 - 0.5 * self.poly, 1 + 0.5 * self.poly)
             cell.cell_position = [x, y, z]
             cell.cell_velocity = [vx, vy, vz]
             cell.cell_direction = [nx, ny, nz]
 
-def plot_initial_cells(particles):
+
+def plot_initial_cells(particles_list):
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(111, projection='3d')
-    for particle in particles:
+    for particle in particles_list:
         ax.scatter(*particle.cell_position, c=particle.group_idx, s=100, alpha=0.6)
     plt.show()
+
 
 if __name__ == "__main__":
     args = parse_user_input()
