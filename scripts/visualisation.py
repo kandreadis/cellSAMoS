@@ -7,11 +7,13 @@ import os
 import datetime
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+from paths_init import system_paths
 from scripts.communication_handler import print_log
 
 
-def save_path(session_label, plot_label):
-    root_dir = "/data1/andreadis/analysis_results/figures"
+def create_png_path(session_label, plot_label):
+    root_dir = system_paths["output_figures_dir"]
     save_dir = os.path.join(root_dir, datetime.datetime.now().strftime('%Y%m%d'), session_label)
     try:
         os.makedirs(save_dir)
@@ -33,7 +35,7 @@ def plot_boxplot(session, data, x, y, hue, show=True, savedpi=300):
     plt.figure()
     plt.title(f"{y} vs. {x} \n {session}")
     sns.boxplot(data, x=x, y=y, hue=hue)
-    plt.savefig(save_path(session, f"box_{y}_vs_{x}"), dpi=savedpi)
+    plt.savefig(create_png_path(session, f"box_{y}_vs_{x}"), dpi=savedpi)
     plot_handler(show)
 
 
@@ -41,7 +43,7 @@ def plot_scatterplot(session, data, x, y, hue, style, show=True, savedpi=300):
     plt.figure()
     plt.title(f"{y} vs. {x} \n {session}")
     sns.scatterplot(data, x=x, y=y, hue=hue, style=style)
-    plt.savefig(save_path(session, f"scatter_{hue}_for_{y}_vs_{x}"), dpi=savedpi)
+    plt.savefig(create_png_path(session, f"scatter_{hue}_for_{y}_vs_{x}"), dpi=savedpi)
     plot_handler(show)
 
 
@@ -49,7 +51,7 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, savedpi=300):
     plt.figure()
     plt.title(f"{y} vs. {x} \n {session}")
     sns.lineplot(data, x=x, y=y, hue=hue, style=style)
-    plt.savefig(save_path(session, f"line_{hue}_for_{y}_vs_{x}"), dpi=savedpi)
+    plt.savefig(create_png_path(session, f"line_{hue}_for_{y}_vs_{x}"), dpi=savedpi)
     plot_handler(show)
 
 
@@ -59,5 +61,5 @@ def plot_heatmap(session, data, rows, columns, values, show=True, cmap="coolwarm
     pivot_result = data.pivot(index=rows, columns=columns, values=values)
     ax = sns.heatmap(pivot_result, linewidth=1, cmap=cmap)  # annot = True
     ax.invert_yaxis()
-    plt.savefig(save_path(session, f"heat_{values}_for_{rows}_vs_{columns}"), dpi=savedpi)
+    plt.savefig(create_png_path(session, f"heat_{values}_for_{rows}_vs_{columns}"), dpi=savedpi)
     plot_handler(show)

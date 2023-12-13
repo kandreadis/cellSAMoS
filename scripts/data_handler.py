@@ -27,7 +27,6 @@ def read_xyz(data, group_index):
 
 
 def add_result(target, tag, item):
-    # print_log(f"saving {tag}")
     try:
         target[tag].append(item)
     except:

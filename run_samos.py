@@ -7,18 +7,16 @@ from datetime import datetime as date
 import numpy as np
 
 import samos_init.initialise_cells as init_cells
+from paths_init import system_paths
 from scripts.communication_handler import print_log
 
 # Specify the path to the samos executable
-samos_dir = "/home/andreadis/Documents/samos_build/build/samos"
+samos_dir = system_paths["samos_dir"]
 
-# Uses root directory to find the Python and configuration script inside "CellSim"
-root_dir = os.getcwd()
-configuration_file = os.path.join(root_dir, "samos_init", "spheroid.conf")
-intialisation_file = os.path.join(root_dir, "samos_init", "initialise_cells.py")
-
-result_root_dir = "/data1/andreadis/samos_output"
-
+# Specify the path to the Python and configuration script inside "CellSim"
+configuration_file = system_paths["conf_file"]
+intialisation_file = system_paths["init_particles_file"]
+result_root_dir = system_paths["output_samos_dir"]
 print_log("=== Start ===")
 
 
@@ -78,8 +76,8 @@ def run_simulation(parameters_dict, session, naming_conv, run_samos=True):
 
 # Start of multi-parameter SAMoS execution
 parameters = {
-    "num_time_steps": 2000,
-    "cell_count": 1,
+    "num_time_steps": 1000,
+    "cell_count": 500,
     "spheroid_radius": 8.735,
     "cell_radius": 1.0,
     "cell_radius_poly": 0.3,
@@ -177,7 +175,7 @@ if sweep_type == "0D":
                                                             parameters["cell_division_rate"],
                                                             "alpha", parameters["propulsion_alpha"], "re",
                                                             parameters["re_fact"])
-    session_label = "single_parameters"
+    session_label = f"0D_{date.now().strftime('%Y%m%d_%H-%M')}"
     run_simulation(parameters_dict=parameters, session=session_label, naming_conv=param_pair_label,
                    run_samos=enable_samos_exec)
 
