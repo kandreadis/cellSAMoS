@@ -3,17 +3,15 @@ Visualisation and Analysis of SAMoS simulation results.
 Author: Konstantinos Andreadis
 """
 
-import os, sys
+import os
 import numpy as np
 import pandas as pd
 from scripts.data_handler import read_dat, read_xyz, add_result, add_var
 from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot, plot_boxplot
 from scripts.analyse_geometry import calc_radius_gyration
-from scripts.communication_handler import Logger
+from scripts.communication_handler import print_log
 
-sys.stdout = Logger()
-
-print("=== Start ===")
+print_log("=== Start ===")
 
 
 def analyse_folder(root, path):
@@ -21,11 +19,11 @@ def analyse_folder(root, path):
     analysis_result_dict = {}
     result_folder_subdirs = os.listdir(result_folder_path)
     result_folder_subdirs_num = len(result_folder_subdirs)
-    print(f"Found {result_folder_subdirs_num} folders in {result_folder_path}")
+    print_log(f"Found {result_folder_subdirs_num} folders in {result_folder_path}")
     for idx, output_dir in enumerate(result_folder_subdirs):
         process_progress = round(100 * (idx + 1) / result_folder_subdirs_num)
         if process_progress in np.arange(0, 125, 25):
-            print(f"Processing {process_progress}%...")
+            print_log(f"Processing {process_progress}%...")
         folder_path = os.path.join(result_folder_path, output_dir)
         dat_files = [f for f in os.listdir(folder_path) if f.endswith(".dat")]
         if len(dat_files) == 0:
@@ -49,9 +47,9 @@ def analyse_folder(root, path):
                         var_type=item[2])
 
     result_df = pd.DataFrame.from_dict(analysis_result_dict, orient="columns")
-    print("Result dataframe shape:", result_df.shape)
-    print(list(result_df.columns))
-    print("----")
+    print_log(f"Result dataframe shape:{result_df.shape}")
+    print_log(list(result_df.columns))
+    print_log("----")
 
     show = False
     plot_boxplot(session=path, data=result_df, x="time frame", y="cell count", hue=None, show=show)
@@ -68,7 +66,7 @@ def analyse_folder(root, path):
                       show=show)
         plot_lineplot(session=path, data=result_df, x="time frame", y="cell count", hue="cell division rate",
                       style=None, show=show)
-        print("Last time frame index: {}".format(max(result_df["time frame"])))
+        print_log("Last time frame index: {}".format(max(result_df["time frame"])))
         result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
         plot_heatmap(session=path, data=result_df_last_time, rows="cell division rate", columns="propulsion alpha",
                      values="cell count", show=show)
@@ -77,10 +75,10 @@ def analyse_folder(root, path):
 
 
 def analyse_root_subfolders(path):
-    print(f"|| {path} ||")
+    print_log(f"|| {path} ||")
     result_sessions = os.listdir(path)
     for result_batch_root in result_sessions:
-        print(f"-- {result_batch_root} --")
+        print_log(f"-- {result_batch_root} --")
         analyse_folder(path, result_batch_root)
 
 
@@ -95,4 +93,4 @@ vars_select = {  # folder short version of variable, label for plotting, type (f
 result_root = "/data1/andreadis/samos_output/20231212_queue"
 analyse_root_subfolders(result_root)
 
-print("=== End ===")
+print_log("=== End ===")

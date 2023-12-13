@@ -2,35 +2,34 @@
 Executes SAMoS with initial (particle) configuration parameter ranges/values.
 Author: Konstantinos Andreadis
 """
-import os, re, argparse, sys
+import os, re, argparse
 from datetime import datetime as date
 import numpy as np
 
 import samos_init.initialise_cells as init_cells
-from scripts.communication_handler import Logger
-
-sys.stdout = Logger()
+from scripts.communication_handler import print_log
 
 # Specify the path to the samos executable
 samos_dir = "/home/andreadis/Documents/samos_build/build/samos"
 
 # Uses root directory to find the Python and configuration script inside "CellSim"
 root_dir = os.getcwd()
-configuration_file = os.path.join(root_dir, "CellSim", "samos_init", "spheroid.conf")
-intialisation_file = os.path.join(root_dir, "CellSim", "samos_init", "initialise_cells.py")
+configuration_file = os.path.join(root_dir, "samos_init", "spheroid.conf")
+intialisation_file = os.path.join(root_dir, "samos_init", "initialise_cells.py")
 
-print("=== Start ===")
+result_root_dir = "/data1/andreadis/samos_output"
+
+print_log("=== Start ===")
 
 
 def run_simulation(parameters_dict, session, naming_conv, run_samos=True):
     parameters_dict["cell_count"] = int(parameters_dict["cell_count"])
     # The result path is initialised with a datestamp inside "samos_output"
-    result_dir = os.path.join(root_dir, "samos_output", date.today().strftime("%Y%m%d") + "_queue", session,
-                              naming_conv)
+    result_dir = os.path.join(result_root_dir, date.today().strftime("%Y%m%d"), session, naming_conv)
     try:
         os.makedirs(result_dir)
     except:
-        print("Result directory already exists, overwriting...")
+        print_log("Result directory already exists, overwriting...")
 
     # Creates path for copied configuration file
     new_configuration_dir = os.path.join(result_dir, "configuration.conf")
@@ -44,7 +43,7 @@ def run_simulation(parameters_dict, session, naming_conv, run_samos=True):
         # Copies initialisation Python script to results folder.
         os.system(f"cp {intialisation_file} {new_initialisation_dir}")
     except:
-        print("Could not copy file to result directory...")
+        print_log("Could not copy file to result directory...")
 
     with open(new_configuration_dir, "r+") as conf_file:
         configuration = conf_file.read()
@@ -66,21 +65,21 @@ def run_simulation(parameters_dict, session, naming_conv, run_samos=True):
     try:
         os.chdir(result_dir)
     except:
-        print("Could not move to result directory...")
+        print_log("Could not move to result directory...")
 
     if run_samos:
         try:
-            print("Executing SAMoS...")
+            print_log("Executing SAMoS...")
             os.system(f"{samos_dir} {new_configuration_dir}")
         except:
-            print("Could not locate SAMoS executable...")
-    print(f"Finished! Location of results: {result_dir}")
+            print_log("Could not locate SAMoS executable...")
+    print_log(f"Finished! Location of results: {result_dir}")
 
 
 # Start of multi-parameter SAMoS execution
 parameters = {
-    "num_time_steps": 10000,
-    "cell_count": 500,
+    "num_time_steps": 2000,
+    "cell_count": 1,
     "spheroid_radius": 8.735,
     "cell_radius": 1.0,
     "cell_radius_poly": 0.3,
@@ -172,7 +171,7 @@ parameter_1D_sweep = parameter_selection[sweep_task]
 parameter_2D_sweep = parameter_selection[sweep_task]
 
 if sweep_type == "0D":
-    print("!! Running single simulation without sweep")
+    print_log("!! Running single simulation without sweep")
     param_pair_label = "t-{}_N-{}_{}-{}_{}-{}_{}-{}".format(parameters["num_time_steps"],
                                                             parameters["cell_count"], "div",
                                                             parameters["cell_division_rate"],
@@ -194,14 +193,14 @@ if sweep_type == "1D":
         var_1_range = np.linspace(parameter_1D_sweep["var_1_start"], parameter_1D_sweep["var_1_end"],
                                   parameter_1D_sweep["var_1_num"])
     var_1_range = np.round(var_1_range, 5)
-    print(f"!! Starting 1D parameter sweep for a total of {len(var_1_range)} parameter values...")
+    print_log(f"!! Starting 1D parameter sweep for a total of {len(var_1_range)} parameter values...")
     i_progress = 0
     for div_idx, var1 in enumerate(var_1_range):
         i_progress += 1
         progress = f"{round(100 * i_progress / (len(var_1_range)))} %"
         status = "{} {}".format(parameter_1D_sweep["var_1"], var1)
         progress_msg = f"[{progress}] --- {status} ---"
-        print(progress_msg)
+        print_log(progress_msg)
         parameters[parameter_1D_sweep["var_1"]] = var1
         param_pair_label = "t-{}_N-{}_{}-{}".format(parameters["num_time_steps"], parameters["cell_count"],
                                                     parameter_1D_sweep["var_1_short"], var1)
@@ -238,7 +237,7 @@ if sweep_type == "2D":
                                   parameter_2D_sweep["var_2_num"])
     var_1_range = np.round(var_1_range, 5)
     var_2_range = np.round(var_2_range, 5)
-    print(f"!! Starting 2D parameter sweep for a total of {len(var_1_range) * len(var_2_range)} parameter pairs...")
+    print_log(f"!! Starting 2D parameter sweep for a total of {len(var_1_range) * len(var_2_range)} parameter pairs...")
     i_progress = 0
     for div_idx, var1 in enumerate(var_1_range):
         for alpha_idx, var2 in enumerate(var_2_range):
@@ -246,7 +245,7 @@ if sweep_type == "2D":
             progress = f"{round(100 * i_progress / (len(var_1_range) * len(var_2_range)))} %"
             status = "{} {} {} {}".format(parameter_2D_sweep["var_1"], var1, parameter_2D_sweep["var_2"], var2)
             progress_msg = f"[{progress}] --- {status} ---"
-            print(progress_msg)
+            print_log(progress_msg)
             parameters[parameter_2D_sweep["var_1"]] = var1
             parameters[parameter_2D_sweep["var_2"]] = var2
             param_pair_label = "t-{}_N-{}_{}-{}_{}-{}".format(parameters["num_time_steps"], parameters["cell_count"],
@@ -255,4 +254,4 @@ if sweep_type == "2D":
             run_simulation(parameters_dict=parameters, session=session_label, naming_conv=param_pair_label,
                            run_samos=enable_samos_exec)
 
-print("=== End ===")
+print_log("=== End ===")

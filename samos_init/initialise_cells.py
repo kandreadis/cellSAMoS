@@ -7,6 +7,7 @@ from datetime import *
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scripts.communication_handler import print_log
 
 
 def parse_user_input():
@@ -45,7 +46,7 @@ def save_initial_cells(cells_data, outfile):
             '%d  %d  %f %f  %f  %f  %f  %f  %f  %f  %f  %f\n' % (
                 p.cell_idx, p.group_idx, p.cell_radius, x, y, z, vx, vy, vz, nx, ny, nz))
     out.close()
-    print(f"Saved cells to {outfile}!")
+    print_log(f"Saved cells to {outfile}!")
 
 
 class Cell:

@@ -7,18 +7,18 @@ import os
 import datetime
 import seaborn as sns
 import matplotlib.pyplot as plt
+from scripts.communication_handler import print_log
 
 
 def save_path(session_label, plot_label):
-    root_dir = os.getcwd()
-    save_dir = os.path.join(root_dir, "analysis_results", "figures", datetime.datetime.now().strftime('%Y%m%d'),
-                            session_label)
+    root_dir = "/data1/andreadis/analysis_results/figures"
+    save_dir = os.path.join(root_dir, datetime.datetime.now().strftime('%Y%m%d'), session_label)
     try:
         os.makedirs(save_dir)
     except:
         pass
     full_path = os.path.join(save_dir, f"{plot_label}.png")
-    print(f"Saving {full_path}")
+    print_log(f"Saving {full_path}")
     return full_path
 
 
