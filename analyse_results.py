@@ -15,7 +15,7 @@ if __name__ == "__main__":
         4: ["re", "potential re factor", float],
     }
 
-    result_root = "/data1/andreadis/samos_output/20231213"
+    result_root = "/data1/andreadis/samos_output/20231212_queue"
     analyse_root_subfolders(result_root, vars_select)
 
     print_log("=== End ===")

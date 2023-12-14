@@ -7,7 +7,7 @@ from scripts.communication_handler import print_log
 from scripts.samos_handler import run_sweep
 
 global_parameters = {
-    "num_time_steps": 50000,
+    "num_time_steps": 20000,
     "cell_count": 500,
     "spheroid_radius": 8.735,
     "cell_radius": 1.0,
@@ -22,6 +22,14 @@ parameter_1D_re = {
     "var_1_short": "re",
     "var_1_type": "linear",  # "log"
     "var_1_start": 1,
+    "var_1_end": 1.2,
+    "var_1_num": 40,
+}
+parameter_1D_re_confined = {
+    "var_1": "re_fact",
+    "var_1_short": "re",
+    "var_1_type": "linear",  # "log"
+    "var_1_start": 1.1,
     "var_1_end": 1.2,
     "var_1_num": 20,
 }
@@ -90,7 +98,7 @@ enable_samos_exec = True
 if __name__ == "__main__":
     print_log("=== Start ===")
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--option", type=str, default="1D_N", help="parameter (sweep) task")
+    parser.add_argument("-o", "--option", type=str, default="1D_re", help="parameter (sweep) task")
     args = parser.parse_args()
     sweep_task = args.option
     sweep_type = sweep_task[:2]

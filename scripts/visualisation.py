@@ -24,7 +24,12 @@ def create_png_path(session_label, plot_label):
     return full_path
 
 
-def plot_handler(show):
+def plot_handler(session, savedpi, label, show):
+    plt.rc('font', size=10)  # legend fontsize
+    plt.rc('axes', labelsize=16)  # fontsize of the x and y labels
+    plt.rc('figure', titlesize=16)  # fontsize of the figure title
+    plt.tight_layout()
+    plt.savefig(create_png_path(session, label), dpi=savedpi, bbox_inches="tight")
     if show:
         plt.show()
     else:
@@ -35,24 +40,21 @@ def plot_boxplot(session, data, x, y, hue, show=True, savedpi=300):
     plt.figure()
     plt.title(f"{y} vs. {x} \n {session}")
     sns.boxplot(data, x=x, y=y, hue=hue)
-    plt.savefig(create_png_path(session, f"box_{y}_vs_{x}"), dpi=savedpi)
-    plot_handler(show)
+    plot_handler(session, savedpi, f"box_{y}_vs_{x}", show)
 
 
 def plot_scatterplot(session, data, x, y, hue, style, show=True, savedpi=300):
     plt.figure()
     plt.title(f"{y} vs. {x} \n {session}")
     sns.scatterplot(data, x=x, y=y, hue=hue, style=style)
-    plt.savefig(create_png_path(session, f"scatter_{hue}_for_{y}_vs_{x}"), dpi=savedpi)
-    plot_handler(show)
+    plot_handler(session, savedpi, f"scatter_{hue}_for_{y}_vs_{x}", show)
 
 
 def plot_lineplot(session, data, x, y, hue, style, show=True, savedpi=300):
     plt.figure()
     plt.title(f"{y} vs. {x} \n {session}")
     sns.lineplot(data, x=x, y=y, hue=hue, style=style)
-    plt.savefig(create_png_path(session, f"line_{hue}_for_{y}_vs_{x}"), dpi=savedpi)
-    plot_handler(show)
+    plot_handler(session, savedpi, f"line_{hue}_for_{y}_vs_{x}", show)
 
 
 def plot_heatmap(session, data, rows, columns, values, show=True, cmap="coolwarm", savedpi=300):
@@ -61,5 +63,4 @@ def plot_heatmap(session, data, rows, columns, values, show=True, cmap="coolwarm
     pivot_result = data.pivot(index=rows, columns=columns, values=values)
     ax = sns.heatmap(pivot_result, linewidth=1, cmap=cmap)  # annot = True
     ax.invert_yaxis()
-    plt.savefig(create_png_path(session, f"heat_{values}_for_{rows}_vs_{columns}"), dpi=savedpi)
-    plot_handler(show)
+    plot_handler(session, savedpi, f"heat_{values}_for_{rows}_vs_{columns}", show)

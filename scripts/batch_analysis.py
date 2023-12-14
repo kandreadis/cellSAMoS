@@ -69,6 +69,20 @@ def analyse_folder(root, path, vars_select):
                      values="cell count", show=show)
         plot_heatmap(session=path, data=result_df_last_time, rows="cell division rate", columns="propulsion alpha",
                      values="radius of gyration", show=show)
+    if "potential re factor" in list(result_df.columns) and "propulsion alpha" in list(result_df.columns):
+        print_log("Last time frame index: {}".format(max(result_df["time frame"])))
+        result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
+        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="propulsion alpha",
+                     values="cell count", show=show)
+        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="propulsion alpha",
+                     values="radius of gyration", show=show)
+    if "potential re factor" in list(result_df.columns) and "cell division rate" in list(result_df.columns):
+        print_log("Last time frame index: {}".format(max(result_df["time frame"])))
+        result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
+        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="cell division rate",
+                     values="cell count", show=show)
+        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="cell division rate",
+                     values="radius of gyration", show=show)
 
 
 def analyse_root_subfolders(path, vars_select):
