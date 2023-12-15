@@ -8,7 +8,7 @@ import numpy as np
 
 import samos_init.initialise_cells as init_cells
 from paths_init import system_paths
-from scripts.communication_handler import print_log
+from scripts.communication_handler import print_log, visualise_result_tree
 
 # Specify the path to the samos executable
 samos_dir = system_paths["samos_dir"]
@@ -21,8 +21,8 @@ result_root_dir = system_paths["output_samos_dir"]
 
 def run_simulation(parameters_dict, session, naming_conv, run_samos=True):
     parameters_dict["cell_count"] = int(parameters_dict["cell_count"])
-    # The result path is initialised with a datestamp inside "samos_output"
-    result_dir = os.path.join(result_root_dir, date.today().strftime("%Y%m%d")+"_queue", session, naming_conv)
+    # The result path is initialised with a datestamp inside "samos_output"   date.today().strftime("%Y%m%d")+"
+    result_dir = os.path.join(result_root_dir, "20231215_queue", session, naming_conv)
     try:
         os.makedirs(result_dir)
     except:
@@ -164,3 +164,4 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                                   parameter_2D_sweep["var_2_short"], var2)
                 run_simulation(parameters_dict=global_parameters, session=session_label, naming_conv=param_pair_label,
                                run_samos=enable_samos_exec)
+                visualise_result_tree(path=system_paths["output_samos_dir"], tree_type="output")

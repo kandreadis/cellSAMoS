@@ -5,14 +5,17 @@ Author: Konstantinos Andreadis
 import os
 import numpy as np
 import pandas as pd
+
+from paths_init import system_paths
 from scripts.data_handler import read_dat, read_xyz, add_result, add_var
 from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot, plot_boxplot
 from scripts.analyse_geometry import calc_radius_gyration
 from scripts.communication_handler import print_log
 
 
-def analyse_folder(root, path, vars_select):
-    result_folder_path = os.path.join(root, path)
+def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
+    session_label = os.path.join(result_folder, session_folder)
+    result_folder_path = os.path.join(root, session_folder)
     analysis_result_dict = {}
     result_folder_subdirs = os.listdir(result_folder_path)
     result_folder_subdirs_num = len(result_folder_subdirs)
@@ -49,45 +52,61 @@ def analyse_folder(root, path, vars_select):
     print_log("----")
 
     show = False
-    plot_boxplot(session=path, data=result_df, x="time frame", y="cell count", hue=None, show=show)
-    plot_lineplot(session=path, data=result_df, x="time frame", y="radius of gyration", hue=None, style=None, show=show)
+    if "time frame" in list(result_df.columns):
+        plot_boxplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, show=show, dpi=dpi)
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None, style=None,
+                      show=show, dpi=dpi)
 
     if "potential re factor" in list(result_df.columns):
-        plot_lineplot(session=path, data=result_df, x="time frame", y="cell count", hue="potential re factor",
-                      style=None, show=show)
-        plot_scatterplot(session=path, data=result_df, x="potential re factor", y="radius of gyration",
-                         hue="time frame", style=None, show=show)
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue="potential re factor",
+                      style=None, show=show, dpi=dpi)
+        plot_scatterplot(session=session_label, data=result_df, x="potential re factor", y="radius of gyration",
+                         hue="time frame", style=None, show=show, dpi=dpi)
+        result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
+        plot_lineplot(session=session_label, data=result_df_last_time, x="potential re factor", y="radius of gyration",
+                      hue=None, style=None, show=show, dpi=dpi)
 
     if "cell division rate" in list(result_df.columns) and "propulsion alpha" in list(result_df.columns):
-        plot_lineplot(session=path, data=result_df, x="time frame", y="cell count", hue="propulsion alpha", style=None,
-                      show=show)
-        plot_lineplot(session=path, data=result_df, x="time frame", y="cell count", hue="cell division rate",
-                      style=None, show=show)
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue="propulsion alpha",
+                      style=None,
+                      show=show, dpi=dpi)
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue="cell division rate",
+                      style=None, show=show, dpi=dpi)
         print_log("Last time frame index: {}".format(max(result_df["time frame"])))
         result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
-        plot_heatmap(session=path, data=result_df_last_time, rows="cell division rate", columns="propulsion alpha",
-                     values="cell count", show=show)
-        plot_heatmap(session=path, data=result_df_last_time, rows="cell division rate", columns="propulsion alpha",
-                     values="radius of gyration", show=show)
+        plot_heatmap(session=session_label, data=result_df_last_time, rows="cell division rate",
+                     columns="propulsion alpha",
+                     values="cell count", show=show, dpi=dpi)
+        plot_heatmap(session=session_label, data=result_df_last_time, rows="cell division rate",
+                     columns="propulsion alpha",
+                     values="radius of gyration", show=show, dpi=dpi)
     if "potential re factor" in list(result_df.columns) and "propulsion alpha" in list(result_df.columns):
         print_log("Last time frame index: {}".format(max(result_df["time frame"])))
         result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
-        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="propulsion alpha",
-                     values="cell count", show=show)
-        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="propulsion alpha",
-                     values="radius of gyration", show=show)
+        plot_heatmap(session=session_label, data=result_df_last_time, rows="potential re factor",
+                     columns="propulsion alpha",
+                     values="cell count", show=show, dpi=dpi)
+        plot_heatmap(session=session_label, data=result_df_last_time, rows="potential re factor",
+                     columns="propulsion alpha",
+                     values="radius of gyration", show=show, dpi=dpi)
     if "potential re factor" in list(result_df.columns) and "cell division rate" in list(result_df.columns):
         print_log("Last time frame index: {}".format(max(result_df["time frame"])))
         result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
-        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="cell division rate",
-                     values="cell count", show=show)
-        plot_heatmap(session=path, data=result_df_last_time, rows="potential re factor", columns="cell division rate",
-                     values="radius of gyration", show=show)
+        plot_heatmap(session=session_label, data=result_df_last_time, rows="potential re factor",
+                     columns="cell division rate",
+                     values="cell count", show=show, dpi=dpi)
+        plot_heatmap(session=session_label, data=result_df_last_time, rows="potential re factor",
+                     columns="cell division rate",
+                     values="radius of gyration", show=show, dpi=dpi)
 
 
-def analyse_root_subfolders(path, vars_select):
-    print_log(f"|| {path} ||")
-    result_sessions = os.listdir(path)
-    for result_batch_root in result_sessions:
-        print_log(f"-- {result_batch_root} --")
-        analyse_folder(path, result_batch_root, vars_select)
+def analyse_root_subfolders(vars_select, result_folder, dpi):
+    root = os.path.join(system_paths["output_samos_dir"], result_folder)
+    print_log(f"|| Searching {root}...")
+    try:
+        session_root = os.listdir(root)
+        for session_folder in session_root:
+            print_log(f"-- {session_folder} --")
+            analyse_folder(root, session_folder, vars_select, result_folder, dpi)
+    except:
+        print("This result directory does not (yet) exist!")
