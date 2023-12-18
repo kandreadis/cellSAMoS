@@ -81,7 +81,7 @@ PI of experimental group for this collaboration) and the team behind the SAMoS s
 
 ## Contact Information
 
-Konstantinos Andreadis (andreadis@physics.lorentz.leidenuniv.nl)
+Konstantinos Andreadis (andreadis@lorentz.leidenuniv.nl)
 
 ## License
 
