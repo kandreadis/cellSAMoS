@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parser.add_argument("-path", "--group_folder", type=str, default="20231218", help="Group folder name?")
 
     # Enable tracker cells embedded within spheroid.
-    parser.add_argument("-track", "--add_tracker_cells", type=bool, default=True, help="Add tracker cells to Spheroid?")
+    parser.add_argument("-track", "--add_tracker_cells", type=bool, default=False, help="Add tracker cells to Spheroid?")
     parser.add_argument("-track_count", "--tracker_cell_count", type=int, default=50, help="Number of tracker cells?")
 
     # Conf file global parameter to replace @VAR variables
