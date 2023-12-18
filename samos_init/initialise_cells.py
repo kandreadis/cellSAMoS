@@ -76,6 +76,9 @@ class Spheroid:
         self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(cell_count))]
 
         def un(a, b):
+            """
+            Uniform distribution draw between a and b.
+            """
             return np.random.uniform(a, b)
 
         for cell in self.cells:
@@ -100,6 +103,9 @@ class Spheroid:
 
 
 def plot_initial_cells(particles_list):
+    """
+    Basic 3D visualisation of initial cell configuration for debugging purposes.
+    """
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(111, projection='3d')
     for particle in particles_list:
@@ -107,9 +113,16 @@ def plot_initial_cells(particles_list):
     plt.show()
 
 
-if __name__ == "__main__":
+def run_initialisation():
+    """
+    Main initialisation script that interprets user arguments, creates the cell collective and saves it.
+    """
     args = parse_user_input()
     collective = Spheroid(spheroid_radius=args.spheroid_radius, cell_radius=args.cell_radius,
                           cell_count=args.cell_count, poly=0.3)
     particles = collective.cells
     save_initial_cells(particles, args.output_file)
+
+
+if __name__ == "__main__":
+    run_initialisation()

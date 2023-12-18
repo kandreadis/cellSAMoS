@@ -1,5 +1,6 @@
 """
 Handler for all samos executions.
+!! This cannot be run independently, it is a helper script.
 Author: Konstantinos Andreadis
 """
 import os, re
@@ -10,19 +11,21 @@ import samos_init.initialise_cells as init_cells
 from paths_init import system_paths
 from scripts.communication_handler import print_log, visualise_result_tree
 
-# Specify the path to the samos executable
+# Import user system paths from paths_init.py
 samos_dir = system_paths["samos_dir"]
-
-# Specify the path to the Python and configuration script inside "CellSim"
 configuration_file = system_paths["conf_file"]
 intialisation_file = system_paths["init_particles_file"]
 result_root_dir = system_paths["output_samos_dir"]
 
 
-def run_simulation(parameters_dict, session, naming_conv, run_samos=True):
+def run_simulation(parameters_dict, group_folder, session, naming_conv, run_samos=True):
+    """
+    For a dictionary of parameters (see run_samos.py), samos is executed within a folder named according to naming_conv
+    inside the folder session.
+    """
     parameters_dict["cell_count"] = int(parameters_dict["cell_count"])
-    # The result path is initialised with a datestamp inside "samos_output"   date.today().strftime("%Y%m%d")+"
-    result_dir = os.path.join(result_root_dir, "20231215_queue", session, naming_conv)
+    # The result path is initialised
+    result_dir = os.path.join(result_root_dir, group_folder, session, naming_conv)
     try:
         os.makedirs(result_dir)
     except:
@@ -73,7 +76,11 @@ def run_simulation(parameters_dict, session, naming_conv, run_samos=True):
     print_log(f"Finished! Location of results: {result_dir}")
 
 
-def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, enable_samos_exec):
+def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, enable_samos_exec, group_folder):
+    """
+    This multi-dimensional sweeping handler operates in 3 sweep_types: Single value, 1 parameter range and 2 parameter
+    ranges. In the first case, the global_parameters are used.
+    """
     if sweep_type == "0D":
         print_log("!! Running single simulation without sweep")
         param_pair_label = "t-{}_N-{}_{}-{}_{}-{}_{}-{}".format(global_parameters["num_time_steps"],
@@ -83,7 +90,7 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                                 global_parameters["re_fact"])
         session_label = f"0D_{date.now().strftime('%Y%m%d_%H-%M')}"
         run_simulation(parameters_dict=global_parameters, session=session_label, naming_conv=param_pair_label,
-                       run_samos=enable_samos_exec)
+                       run_samos=enable_samos_exec, group_folder=group_folder)
 
     if sweep_type == "1D":
         session_label = "{}_{}_{}-{}_#{}".format(parameter_1D_sweep["var_1_short"], parameter_1D_sweep["var_1_type"],
@@ -116,7 +123,7 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                        parameter_1D_sweep["var_1_short"],
                                                        var1)
             run_simulation(parameters_dict=global_parameters, session=session_label, naming_conv=param_pair_label,
-                           run_samos=enable_samos_exec)
+                           run_samos=enable_samos_exec, group_folder=group_folder)
 
     if sweep_type == "2D":
         session_label = "{}_{}_{}-{}_#{}_vs_{}_{}_{}-{}_#{}".format(parameter_2D_sweep["var_1_short"],
@@ -163,5 +170,5 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                                   parameter_2D_sweep["var_1_short"], var1,
                                                                   parameter_2D_sweep["var_2_short"], var2)
                 run_simulation(parameters_dict=global_parameters, session=session_label, naming_conv=param_pair_label,
-                               run_samos=enable_samos_exec)
+                               run_samos=enable_samos_exec, group_folder=group_folder)
                 visualise_result_tree(path=system_paths["output_samos_dir"], tree_type="output")

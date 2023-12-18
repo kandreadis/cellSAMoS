@@ -8,66 +8,11 @@ from scripts.samos_handler import run_sweep
 
 if __name__ == "__main__":
     print_log("=== Start ===")
-
-    parameter_1D_re = {
-        "var_1": "re_fact",
-        "var_1_short": "re",
-        "var_1_type": "linear",  # "log"
-        "var_1_start": 1,
-        "var_1_end": 1.2,
-        "var_1_num": 20,
-    }
-    parameter_1D_N = {
-        "var_1": "cell_count",
-        "var_1_short": "N",
-        "var_1_type": "linear",  # "log"
-        "var_1_start": 1,
-        "var_1_end": 1000,
-        "var_1_num": 5,
-    }
-    parameter_2D_div_alpha = {
-        "var_1": "cell_division_rate",
-        "var_1_short": "div",
-        "var_1_type": "linear",  # "linear"
-        "var_1_start": 0.01,
-        "var_1_end": 0.1,
-        "var_1_num": 10,
-        "var_2": "propulsion_alpha",
-        "var_2_short": "alpha",
-        "var_2_type": "linear",  # "log"
-        "var_2_start": 0.01,
-        "var_2_end": 0.1,
-        "var_2_num": 10
-    }
-    parameter_2D_re_alpha = {
-        "var_1": "re_fact",
-        "var_1_short": "re",
-        "var_1_type": "linear",  # "log"
-        "var_1_start": 1,
-        "var_1_end": 1.2,
-        "var_1_num": 5,
-        "var_2": "propulsion_alpha",
-        "var_2_short": "alpha",
-        "var_2_type": "linear",  # "log"
-        "var_2_start": 0.01,
-        "var_2_end": 1,
-        "var_2_num": 10
-    }
-    parameter_2D_re_div = {
-        "var_1": "re_fact",
-        "var_1_short": "re",
-        "var_1_type": "linear",  # "log"
-        "var_1_start": 1,
-        "var_1_end": 1.2,
-        "var_1_num": 5,
-        "var_2": "cell_division_rate",
-        "var_2_short": "div",
-        "var_2_type": "linear",  # "log"
-        "var_2_start": 0.01,
-        "var_2_end": 1,
-        "var_2_num": 10
-    }
+    # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
+    # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
+    parser.add_argument("-path", "--group_folder", type=str, default="20231218", help="Group folder name?")
+    # Conf file global parameter to replace @VAR variables
     parser.add_argument("-t", "--num_time_steps", type=int, default=10000, help="Number of time steps")
     parser.add_argument("-N", "--cell_count", type=int, default=500, help="Number of initial cells")
     parser.add_argument("-R", "--spheroid_radius", type=float, default=8.735, help="Radius of initial spheroid")
@@ -76,9 +21,9 @@ if __name__ == "__main__":
     parser.add_argument("-div", "--cell_division_rate", type=float, default=0.1, help="Division rate of a cell")
     parser.add_argument("-alpha", "--propulsion_alpha", type=float, default=0.1, help="External propulsion factor")
     parser.add_argument("-re", "--re_fact", type=float, default=1.15, help="Soft sphere potential factor")
-
+    # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
     parser.add_argument("-enableSAMoS", "--enable_samos", type=bool, default=True, help="Enable SAMoS executable?")
-
+    # First/only parameter to vary. v1 = None -> only global variables are used for a single run.
     parser.add_argument("-v1", "--var_1", type=str, default=None, help="Name of variable parameter 1?")
     parser.add_argument("-v1short", "--var_1_short", type=str, default=None, help="Tag of variable parameter 1?")
     parser.add_argument("-v1type", "--var_1_type", type=str, default="linear",
@@ -88,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("-v1end", "--var_1_end", type=float, default=0.1, help="Range end of variable parameter 1?")
     parser.add_argument("-v1num", "--var_1_num", type=int, default=5,
                         help="Range number of points of variable parameter 1?")
-
+    # Second parameter to vary. v2 = None -> only previous parameter is varied.
     parser.add_argument("-v2", "--var_2", type=str, default=None, help="Name of variable parameter 2?")
     parser.add_argument("-v2short", "--var_2_short", type=str, default=None, help="Tag of variable parameter 2?")
     parser.add_argument("-v2type", "--var_2_type", type=str, default="linear",
@@ -98,11 +43,13 @@ if __name__ == "__main__":
     parser.add_argument("-v2end", "--var_2_end", type=float, default=0.1, help="Range end of variable parameter 2?")
     parser.add_argument("-v2num", "--var_2_num", type=int, default=5,
                         help="Range number of points of variable parameter 2?")
-
     args = parser.parse_args()
+
+    # User input processing logic
     global_parameters = {}
     parameter_1D_sweep = {}
     parameter_2D_sweep = {}
+    sweep_type = None
     for var in args.__dict__.keys():
         if var[:3] != "var":
             global_parameters[var] = args.__dict__[var]
@@ -114,8 +61,9 @@ if __name__ == "__main__":
         elif args.__dict__["var_1"] is not None and args.__dict__["var_2"] is not None:
             parameter_2D_sweep[var] = args.__dict__[var]
             sweep_type = "2D"
-
     enable_samos_exec = global_parameters["enable_samos"]
+    group_folder = global_parameters["group_folder"]
+    # Execution of main samos handling script(s).
     run_sweep(sweep_type=sweep_type, global_parameters=global_parameters, parameter_1D_sweep=parameter_1D_sweep,
-              parameter_2D_sweep=parameter_2D_sweep, enable_samos_exec=enable_samos_exec)
+              parameter_2D_sweep=parameter_2D_sweep, enable_samos_exec=enable_samos_exec, group_folder=group_folder)
     print_log("=== End ===")

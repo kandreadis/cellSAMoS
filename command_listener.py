@@ -8,7 +8,12 @@ from paths_init import system_paths
 from scripts.communication_handler import print_log
 import subprocess
 
-if __name__ == "__main__":
+
+def open_listen_port():
+    """
+    Listens for new added commands (bash files), executes them, and communicates results live.
+    ! This is a never-ending while loop.
+    """
     completed_tasks = []
     while True:
         listen_path = system_paths["listen_dir"]
@@ -22,3 +27,7 @@ if __name__ == "__main__":
                 subprocess.call(script, shell=True)
                 completed_tasks.append(task)
         print(f"Completed tasks: {completed_tasks}")
+
+
+if __name__ == "__main__":
+    open_listen_port()

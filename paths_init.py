@@ -1,5 +1,5 @@
 """
-Contains all system paths to various folders or files
+Contains all system paths to various folders or files defined by each user individually.
 Author: Konstantinos Andreadis
 """
 

@@ -1,5 +1,6 @@
 """
 Collection of independent functions for data import, conversion, transport and export.
+!! This cannot be run independently, it is a helper script.
 Author: Konstantinos Andreadis
 """
 
@@ -8,6 +9,9 @@ import numpy as np
 
 
 def read_dat(path):
+    """
+    Read a .dat file and shift its columns to properly import data as dataFrame.
+    """
     data = pd.read_csv(path, header=0, sep='\s+')
     colshift = {}
     temp = data.columns
@@ -19,6 +23,9 @@ def read_dat(path):
 
 
 def read_xyz(data, group_index):
+    """
+    For a given cell group, retrieve all xyz cell positions.
+    """
     data = data.groupby("type").get_group(group_index)
     xcoords = data["x"].to_numpy()
     ycoords = data["y"].to_numpy()
@@ -27,6 +34,9 @@ def read_xyz(data, group_index):
 
 
 def add_result(target, tag, item):
+    """
+    Add a result to a target dictionary, and create the category if not yet pre-existing.
+    """
     try:
         target[tag].append(item)
     except:
@@ -35,6 +45,9 @@ def add_result(target, tag, item):
 
 
 def add_var(target, var_list, var_short, var_long, var_type=float):
+    """
+    Extract and format parameter values, and save them to a result dictionary.
+    """
     for var in var_list:
         if var_short in var:
             if var_type == int:
