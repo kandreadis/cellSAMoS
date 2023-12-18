@@ -16,6 +16,7 @@ def open_listen_port():
     """
     completed_tasks = []
     while True:
+        # TODO add feature to cancel active task(s) remotely!
         listen_path = system_paths["listen_dir"]
         bash_tasks = [os.path.join(listen_path, f) for f in os.listdir(listen_path) if f.endswith(".sh")]
         print(f"---------- Found task {bash_tasks} in {listen_path} ----------")

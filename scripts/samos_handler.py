@@ -11,19 +11,22 @@ import samos_init.initialise_cells as init_cells
 from paths_init import system_paths
 from scripts.communication_handler import print_log, visualise_result_tree
 
-# Import user system paths from paths_init.py
-samos_dir = system_paths["samos_dir"]
-configuration_file = system_paths["conf_file"]
-intialisation_file = system_paths["init_particles_file"]
-result_root_dir = system_paths["output_samos_dir"]
 
-
-def run_simulation(parameters_dict, group_folder, session, naming_conv, run_samos=True):
+def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
     """
     For a dictionary of parameters (see run_samos.py), samos is executed within a folder named according to naming_conv
     inside the folder session.
     """
-    parameters_dict["cell_count"] = int(parameters_dict["cell_count"])
+    # Import user system paths from paths_init.py
+    samos_dir = system_paths["samos_dir"]
+    if params["add_tracker_cells"]:
+        configuration_file = system_paths["conf_file_trackers"]
+    else:
+        configuration_file = system_paths["conf_file"]
+    intialisation_file = system_paths["init_particles_file"]
+    result_root_dir = system_paths["output_samos_dir"]
+
+    params["cell_count"] = int(params["cell_count"])
     # The result path is initialised
     result_dir = os.path.join(result_root_dir, group_folder, session, naming_conv)
     try:
@@ -47,18 +50,20 @@ def run_simulation(parameters_dict, group_folder, session, naming_conv, run_samo
 
     with open(new_configuration_dir, "r+") as conf_file:
         configuration = conf_file.read()
-        configuration = re.sub("@DIVRATE", str(parameters_dict["cell_division_rate"]), configuration)
-        configuration = re.sub("@ALPHA", str(parameters_dict["propulsion_alpha"]), configuration)
-        configuration = re.sub("@NUMTIMESTEPS", str(parameters_dict["num_time_steps"]), configuration)
-        configuration = re.sub("@REFACT", str(parameters_dict["re_fact"]), configuration)
+        configuration = re.sub("@DIVRATE", str(params["cell_division_rate"]), configuration)
+        configuration = re.sub("@ALPHA", str(params["propulsion_alpha"]), configuration)
+        configuration = re.sub("@NUMTIMESTEPS", str(params["num_time_steps"]), configuration)
+        configuration = re.sub("@REFACT", str(params["re_fact"]), configuration)
+        configuration = re.sub("@POLY", str(params["cell_radius_poly"]), configuration)
         conf_file.seek(0)
         conf_file.write(configuration)
         conf_file.truncate()
 
     # Executes Python script to initialise particles and save to the result folder
-    collective = init_cells.Spheroid(spheroid_radius=parameters_dict["spheroid_radius"],
-                                     cell_radius=parameters_dict["cell_radius"],
-                                     cell_count=parameters_dict["cell_count"], poly=parameters_dict["cell_radius_poly"])
+    collective = init_cells.Spheroid(cell_radius=params["cell_radius"],
+                                     cell_count=params["cell_count"], poly=params["cell_radius_poly"],
+                                     add_tracker_cells=params["add_tracker_cells"],
+                                     tracker_cell_count=params["tracker_cell_count"])
     init_cells.save_initial_cells(collective.cells, new_particles_dir)
 
     # Finally, moves to the result folder and executes SAMoS using the configuration file.
@@ -74,6 +79,7 @@ def run_simulation(parameters_dict, group_folder, session, naming_conv, run_samo
         except:
             print_log("Could not locate SAMoS executable...")
     print_log(f"Finished! Location of results: {result_dir}")
+    visualise_result_tree(path=system_paths["output_samos_dir"], tree_type="output")
 
 
 def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, enable_samos_exec, group_folder):
@@ -89,8 +95,8 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                                 global_parameters["propulsion_alpha"], "re",
                                                                 global_parameters["re_fact"])
         session_label = f"0D_{date.now().strftime('%Y%m%d_%H-%M')}"
-        run_simulation(parameters_dict=global_parameters, session=session_label, naming_conv=param_pair_label,
-                       run_samos=enable_samos_exec, group_folder=group_folder)
+        run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
+                       naming_conv=param_pair_label, run_samos=enable_samos_exec)
 
     if sweep_type == "1D":
         session_label = "{}_{}_{}-{}_#{}".format(parameter_1D_sweep["var_1_short"], parameter_1D_sweep["var_1_type"],
@@ -118,12 +124,10 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                         global_parameters["cell_count"],
                                                         parameter_1D_sweep["var_1_short"], var1)
             if parameter_1D_sweep["var_1_short"] == "N":
-                global_parameters["spheroid_radius"] = int((var1 / 0.74) ** (1 / 3) * global_parameters["cell_radius"])
                 param_pair_label = "t-{}_{}-{}".format(global_parameters["num_time_steps"],
-                                                       parameter_1D_sweep["var_1_short"],
-                                                       var1)
-            run_simulation(parameters_dict=global_parameters, session=session_label, naming_conv=param_pair_label,
-                           run_samos=enable_samos_exec, group_folder=group_folder)
+                                                       parameter_1D_sweep["var_1_short"], var1)
+            run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
+                           naming_conv=param_pair_label, run_samos=enable_samos_exec)
 
     if sweep_type == "2D":
         session_label = "{}_{}_{}-{}_#{}_vs_{}_{}_{}-{}_#{}".format(parameter_2D_sweep["var_1_short"],
@@ -169,6 +173,5 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                                   global_parameters["cell_count"],
                                                                   parameter_2D_sweep["var_1_short"], var1,
                                                                   parameter_2D_sweep["var_2_short"], var2)
-                run_simulation(parameters_dict=global_parameters, session=session_label, naming_conv=param_pair_label,
-                               run_samos=enable_samos_exec, group_folder=group_folder)
-                visualise_result_tree(path=system_paths["output_samos_dir"], tree_type="output")
+                run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
+                               naming_conv=param_pair_label, run_samos=enable_samos_exec)

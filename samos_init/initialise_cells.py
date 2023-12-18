@@ -1,8 +1,8 @@
 """
 Initialisation of spheroid cells for SAMoS.
+!! This cannot be run independently, it is a helper script.
 Author: Konstantinos Andreadis.
 """
-import argparse
 from datetime import *
 
 import matplotlib.pyplot as plt
@@ -10,28 +10,9 @@ import numpy as np
 from scripts.communication_handler import print_log
 
 
-def parse_user_input():
-    """
-    Parse user input global_parameters when running this script using bash commands (terminal).
-    :return: Default/chosen run global_parameters
-    :rtype: Parser arguments
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-N", "--cell_count", type=int, default=500, help="number of cells")
-    parser.add_argument("-R", "--spheroid_radius", type=float, default=8.735, help="sphere radius")
-    parser.add_argument("-r", "--cell_radius", type=float, default=1.0, help="cell radius")
-    parser.add_argument("-o", "--output_file", type=str, default='out.txt', help="output file")
-    parser.add_argument("-plot", "--plotconfig", action='store_true', default=False, help="plot configuration?")
-    return parser.parse_args()
-
-
 def save_initial_cells(cells_data, outfile):
     """
-    This function writes a .txt file containing the initial particle configuration.
-    :param cells_data: Initial cell configuration
-    :type cells_data: See custom format in class Cell
-    :param outfile: Path
-    :type outfile: String
+    Writes a .txt file containing the initial particle configuration.
     """
     gentime = datetime.now()
     out = open(outfile, 'w')
@@ -68,12 +49,19 @@ class Spheroid:
     A spheroid is initialised using a population(collective) of cells.
     """
 
-    def __init__(self, spheroid_radius, cell_count, cell_radius, poly):
-        self.R = spheroid_radius
+    def __init__(self, cell_count, cell_radius, poly, add_tracker_cells, tracker_cell_count):
         self.N = cell_count
         self.poly = poly
-
-        self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(cell_count))]
+        self.add_tracker_cells = add_tracker_cells
+        self.Ntracker = tracker_cell_count
+        self.cell_radius = cell_radius
+        if self.add_tracker_cells:
+            self.R = ((self.N + self.Ntracker) / 0.74) ** (1 / 3) * self.cell_radius
+            self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(self.N))]
+            self.cells.extend(Cell(cell_idx=j, group_idx=2) for j in range(int(self.Ntracker)))
+        else:
+            self.R = (self.N / 0.74) ** (1 / 3) * self.cell_radius
+            self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(self.N))]
 
         def un(a, b):
             """
@@ -85,7 +73,7 @@ class Spheroid:
             phi = un(0, 2 * np.pi)
             costheta = un(-1, 1)
             theta = np.arccos(costheta)
-            r = spheroid_radius * un(0, 1) ** (1. / 3.)
+            r = self.R * un(0, 1) ** (1. / 3.)
             x = r * np.sin(theta) * np.cos(phi)
             y = r * np.sin(theta) * np.sin(phi)
             z = r * np.cos(theta)
@@ -96,7 +84,10 @@ class Spheroid:
             nx = np.cos(phi) * np.sin(np.arccos(costheta))
             ny = np.sin(phi) * np.sin(np.arccos(costheta))
             nz = costheta
-            cell.cell_radius = cell_radius * un(1 - 0.5 * self.poly, 1 + 0.5 * self.poly)
+            if cell.group_idx == 2:
+                cell.cell_radius = self.cell_radius
+            else:
+                cell.cell_radius = self.cell_radius * un(1 - 0.5 * self.poly, 1 + 0.5 * self.poly)
             cell.cell_position = [x, y, z]
             cell.cell_velocity = [vx, vy, vz]
             cell.cell_direction = [nx, ny, nz]
@@ -111,18 +102,3 @@ def plot_initial_cells(particles_list):
     for particle in particles_list:
         ax.scatter(*particle.cell_position, c=particle.group_idx, s=100, alpha=0.6)
     plt.show()
-
-
-def run_initialisation():
-    """
-    Main initialisation script that interprets user arguments, creates the cell collective and saves it.
-    """
-    args = parse_user_input()
-    collective = Spheroid(spheroid_radius=args.spheroid_radius, cell_radius=args.cell_radius,
-                          cell_count=args.cell_count, poly=0.3)
-    particles = collective.cells
-    save_initial_cells(particles, args.output_file)
-
-
-if __name__ == "__main__":
-    run_initialisation()

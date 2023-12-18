@@ -7,6 +7,7 @@ system_paths = {
     "samos_dir": "/home/andreadis/Documents/samos_build/build/samos",
     "output_samos_dir": "/data1/andreadis/samos_output",
     "conf_file": "/data1/andreadis/CellSim/samos_init/spheroid.conf",
+    "conf_file_trackers": "/data1/andreadis/CellSim/samos_init/spheroid_trackers.conf",
     "init_particles_file": "/data1/andreadis/CellSim/samos_init/initialise_cells.py",
     "log_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/cellsim.log",
     "output_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/samos-output_dir-tree.log",

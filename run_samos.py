@@ -10,19 +10,27 @@ if __name__ == "__main__":
     print_log("=== Start ===")
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
+
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
     parser.add_argument("-path", "--group_folder", type=str, default="20231218", help="Group folder name?")
+
+    # Enable tracker cells embedded within spheroid.
+    parser.add_argument("-track", "--add_tracker_cells", type=bool, default=True, help="Add tracker cells to Spheroid?")
+    parser.add_argument("-track_count", "--tracker_cell_count", type=int, default=50, help="Number of tracker cells?")
+
     # Conf file global parameter to replace @VAR variables
-    parser.add_argument("-t", "--num_time_steps", type=int, default=10000, help="Number of time steps")
+    parser.add_argument("-t", "--num_time_steps", type=int, default=20000, help="Number of time steps")
     parser.add_argument("-N", "--cell_count", type=int, default=500, help="Number of initial cells")
-    parser.add_argument("-R", "--spheroid_radius", type=float, default=8.735, help="Radius of initial spheroid")
+
     parser.add_argument("-r", "--cell_radius", type=float, default=1.0, help="Mean cell radius")
     parser.add_argument("-rpoly", "--cell_radius_poly", type=float, default=0.3, help="Polydispersity of cell radius")
     parser.add_argument("-div", "--cell_division_rate", type=float, default=0.1, help="Division rate of a cell")
     parser.add_argument("-alpha", "--propulsion_alpha", type=float, default=0.1, help="External propulsion factor")
     parser.add_argument("-re", "--re_fact", type=float, default=1.15, help="Soft sphere potential factor")
+
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
     parser.add_argument("-enableSAMoS", "--enable_samos", type=bool, default=True, help="Enable SAMoS executable?")
+
     # First/only parameter to vary. v1 = None -> only global variables are used for a single run.
     parser.add_argument("-v1", "--var_1", type=str, default=None, help="Name of variable parameter 1?")
     parser.add_argument("-v1short", "--var_1_short", type=str, default=None, help="Tag of variable parameter 1?")
@@ -33,6 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("-v1end", "--var_1_end", type=float, default=0.1, help="Range end of variable parameter 1?")
     parser.add_argument("-v1num", "--var_1_num", type=int, default=5,
                         help="Range number of points of variable parameter 1?")
+
     # Second parameter to vary. v2 = None -> only previous parameter is varied.
     parser.add_argument("-v2", "--var_2", type=str, default=None, help="Name of variable parameter 2?")
     parser.add_argument("-v2short", "--var_2_short", type=str, default=None, help="Tag of variable parameter 2?")
@@ -44,6 +53,8 @@ if __name__ == "__main__":
     parser.add_argument("-v2num", "--var_2_num", type=int, default=5,
                         help="Range number of points of variable parameter 2?")
     args = parser.parse_args()
+    if args.add_tracker_cells:
+        args.group_folder += "_trackers"
 
     # User input processing logic
     global_parameters = {}
