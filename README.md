@@ -47,7 +47,7 @@ Small notes:
 There are two ways of executing cellSAMoS:
 
 1. Execute **command_listener.py**, and this will continiously listen to
-   any added bash scripts in paths_init.py/system_paths["listen_dir"]. Upon execution, results are synched live.
+   any added bash scripts in paths_init.py/system_paths["listen_dir"]. Upon execution, results are synced live.
 
 ```bash
 python PATH_TO_CLONE/run_samos.py
@@ -67,7 +67,7 @@ python PATH_TO/analyse_results.py
 
 ## Project Folder Structure
 
-Documentation in progres...
+Documentation in progress...
 
 ## How to contribute
 
