@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
     default_folder_name = f"{date.now().strftime('%Y%m%d')}"
-    parser.add_argument("-path", "--group_folder", type=str, default="20231218", help="Group folder name?")
+    parser.add_argument("-path", "--group_folder", type=str, default=default_folder_name, help="Group folder name?")
 
     # Enable tracker cells embedded within spheroid.
     parser.add_argument("-track", "--add_tracker_cells", type=bool, default=False, help="Add tracker cells to Spheroid?")
