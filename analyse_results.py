@@ -20,6 +20,7 @@ def run_analysis():
         2: ["div", "cell division rate", float],
         3: ["alpha", "propulsion alpha", float],
         4: ["re", "potential re factor", float],
+        5: ["poly", "cell radius polydispersity", float],
     }
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()

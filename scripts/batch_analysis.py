@@ -65,6 +65,15 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
         plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
                       style=None, show=show, dpi=dpi)
 
+    if "cell radius polydispersity" in list(result_df.columns):
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count",
+                      hue="cell radius polydispersity", style=None, show=show, dpi=dpi)
+        plot_scatterplot(session=session_label, data=result_df, x="cell radius polydispersity", y="radius of gyration",
+                         hue="time frame", style=None, show=show, dpi=dpi)
+        result_df_last_time = result_df.groupby("time frame").get_group(max(result_df["time frame"]))
+        plot_lineplot(session=session_label, data=result_df_last_time, x="cell radius polydispersity",
+                      y="radius of gyration", hue=None, style=None, show=show, dpi=dpi)
+
     if "potential re factor" in list(result_df.columns):
         plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue="potential re factor",
                       style=None, show=show, dpi=dpi)
