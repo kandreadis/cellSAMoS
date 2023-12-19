@@ -10,6 +10,7 @@ system_paths = {
     "conf_file_trackers": "/data1/andreadis/CellSim/samos_init/spheroid_trackers.conf",
     "init_particles_file": "/data1/andreadis/CellSim/samos_init/initialise_cells.py",
     "log_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/cellsim.log",
+    "port_status_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/port_status.log",
     "output_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/samos-output_dir-tree.log",
     "analysis_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/analysis-output_dir-tree.log",
     "output_figures_dir": "/data1/andreadis/analysis_results/figures",

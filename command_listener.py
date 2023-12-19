@@ -5,7 +5,7 @@ Author: Konstantinos Andreadis
 import os, shutil
 
 from paths_init import system_paths
-from scripts.communication_handler import print_log
+from scripts.communication_handler import print_portstatus
 import subprocess
 
 
@@ -22,12 +22,12 @@ def open_listen_port():
         print(f"---------- Found task {bash_tasks} in {listen_path} ----------")
         for task in bash_tasks:
             task_path = os.path.join(listen_path, task)
-            print_log(f"=> Executing task {task}...")
+            print_portstatus(f"=> Executing task {task}...")
             with open(task_path, 'rb') as bash_script:
                 script = bash_script.read()
             subprocess.call(script, shell=True)
             shutil.move(task_path, os.path.join(completed_tasks_path,task))
-            print(f"Completed task {task}, moving to /completed_tasks...")
+            print_portstatus(f"! Completed task {task}, moving script to /completed_tasks ...")
 
 
 if __name__ == "__main__":

@@ -34,6 +34,17 @@ def print_dirstatus(message, tree_type):
             f.write(msg + "\n")
         f.close()
 
+def print_portstatus(message):
+    """
+    Save last known cellSAMoS port status to log file.
+    """
+    log = f"[{datetime.datetime.now().strftime('%Y/%m/%d %H:%M')}] {message}\n"
+    status_msg_file = os.path.join(system_paths["port_status_file"])
+    with open(status_msg_file, "a") as f:
+        f.write(log)
+        f.close()
+    print(message)
+
 
 def visualise_result_tree(path, tree_type, show_subfolders=False):
     """
