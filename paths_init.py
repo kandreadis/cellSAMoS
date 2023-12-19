@@ -13,5 +13,6 @@ system_paths = {
     "output_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/samos-output_dir-tree.log",
     "analysis_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/analysis-output_dir-tree.log",
     "output_figures_dir": "/data1/andreadis/analysis_results/figures",
-    "listen_dir":"/data1/andreadis/Dropbox/CELLSIM_PORT"
+    "listen_dir":"/data1/andreadis/Dropbox/CELLSIM_PORT",
+    "completed_tasks_dir":"/data1/andreadis/Dropbox/CELLSIM_PORT/completed_tasks"
 }

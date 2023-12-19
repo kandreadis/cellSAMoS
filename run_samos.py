@@ -3,6 +3,7 @@ Executes SAMoS with initial (particle) configuration parameter ranges/values.
 Author: Konstantinos Andreadis
 """
 import argparse
+from datetime import datetime as date
 from scripts.communication_handler import print_log
 from scripts.samos_handler import run_sweep
 
@@ -12,6 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
+    default_folder_name = f"{date.now().strftime('%Y%m%d')}"
     parser.add_argument("-path", "--group_folder", type=str, default="20231218", help="Group folder name?")
 
     # Enable tracker cells embedded within spheroid.
