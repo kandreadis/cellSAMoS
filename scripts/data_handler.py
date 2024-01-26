@@ -32,6 +32,13 @@ def read_xyz(data, group_index):
     zcoords = data["z"].to_numpy()
     return np.column_stack([xcoords, ycoords, zcoords])
 
+def read_radii(data, group_index):
+    """
+    For a given cell group, retrieve all xyz cell positions.
+    """
+    data = data.groupby("type").get_group(group_index)
+    return data["radius"].to_numpy()
+
 
 def add_result(target, tag, item):
     """
@@ -49,7 +56,7 @@ def add_var(target, var_list, var_short, var_long, var_type=float):
     Extract and format parameter values, and save them to a result dictionary.
     """
     for var in var_list:
-        if var_short in var:
+        if var_short == var.split("-")[0]:
             if var_type == int:
                 var_val = int(float(var.split("-")[-1]))
             else:

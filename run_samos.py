@@ -17,12 +17,12 @@ if __name__ == "__main__":
     parser.add_argument("-path", "--group_folder", type=str, default=default_folder_name, help="Group folder name?")
 
     # Enable tracker cells embedded within spheroid.
-    parser.add_argument("-track", "--add_tracker_cells", type=bool, default=False, help="Add tracker cells to Spheroid?")
-    parser.add_argument("-track_count", "--tracker_cell_count", type=int, default=50, help="Number of tracker cells?")
+    parser.add_argument("-track", "--add_tracker_cells", action="store_true", help="Add tracker cells to Spheroid?")
+    parser.add_argument("-track_count", "--tracker_cell_count", type=int, default=100, help="Number of tracker cells?")
 
     # Conf file global parameter to replace @VAR variables
-    parser.add_argument("-t", "--num_time_steps", type=int, default=20000, help="Number of time steps")
-    parser.add_argument("-N", "--cell_count", type=int, default=500, help="Number of initial cells")
+    parser.add_argument("-t", "--num_time_steps", type=int, default=10000, help="Number of time steps")
+    parser.add_argument("-N", "--cell_count", type=int, default=200, help="Number of initial cells")
 
     parser.add_argument("-r", "--cell_radius", type=float, default=1.0, help="Mean cell radius")
     parser.add_argument("-rpoly", "--cell_radius_poly", type=float, default=0.3, help="Polydispersity of cell radius")
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser.add_argument("-re", "--re_fact", type=float, default=1.15, help="Soft sphere potential factor")
 
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
-    parser.add_argument("-enableSAMoS", "--enable_samos", type=bool, default=True, help="Enable SAMoS executable?")
+    parser.add_argument("-disable_samos", "--disable_samos", action="store_false", help="Dsiable SAMoS executable?")
 
     # First/only parameter to vary. v1 = None -> only global variables are used for a single run.
     parser.add_argument("-v1", "--var_1", type=str, default=None, help="Name of variable parameter 1?")
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                         help="Range number of points of variable parameter 2?")
     args = parser.parse_args()
     if args.add_tracker_cells:
-        args.group_folder += "_trackers"
+        args.group_folder += "_tracked"
 
     # User input processing logic
     global_parameters = {}
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         elif args.__dict__["var_1"] is not None and args.__dict__["var_2"] is not None:
             parameter_2D_sweep[var] = args.__dict__[var]
             sweep_type = "2D"
-    enable_samos_exec = global_parameters["enable_samos"]
+    enable_samos_exec = global_parameters["disable_samos"]
     group_folder = global_parameters["group_folder"]
     # Execution of main samos handling script(s).
     run_sweep(sweep_type=sweep_type, global_parameters=global_parameters, parameter_1D_sweep=parameter_1D_sweep,

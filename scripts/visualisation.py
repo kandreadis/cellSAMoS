@@ -65,13 +65,35 @@ def plot_scatterplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi
     plot_handler(session, dpi, f"scatter_{hue}_for_{y}_vs_{x}", show)
 
 
-def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi):
+def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, loglog=False):
     """
     Line plot visualisation
     """
     plt.figure()
     plt.title(f"{y} vs. {x} \n {session}")
-    sns.lineplot(data, x=x, y=y, hue=hue, style=style)
+    if type(y) == list:
+        for y_ in y:
+            sns.lineplot(data, x=x, y=y_, hue=hue, style=style)
+    else:
+        sns.lineplot(data, x=x, y=y, hue=hue, style=style)
+    if loglog:
+        plt.loglog()
+    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}", show)
+
+def plot_profile(session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=False):
+    """
+    Profile plot visualisation
+    """
+    plt.figure()
+    plt.title(f"{y} vs. {x} \n {session}")
+    t_range = data[hue].to_numpy()
+    for t_i, t in enumerate(t_range):
+        plt.plot(data[x][t_i][0], data[y][t_i][0], label=t, c=str(1-(t_i+1)/len(t_range)))
+    plt.xticks(data[x][t_i][0])
+    # sns.lineplot(x=data[x], y=data[y], hue=data[hue])
+    plt.legend()
+    if loglog:
+        plt.loglog()
     plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}", show)
 
 

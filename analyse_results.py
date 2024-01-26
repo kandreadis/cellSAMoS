@@ -16,15 +16,16 @@ def run_analysis():
     # For each variable: [short version of variable (str), label for plotting (str), type (float/int)]
     vars_select = {
         0: ["N", "initial cell count", int],
-        1: ["t", "# time steps", int],
+        1: ["t", "max time steps", int],
         2: ["div", "cell division rate", float],
         3: ["alpha", "propulsion alpha", float],
         4: ["re", "potential re factor", float],
         5: ["poly", "cell radius polydispersity", float],
+        6: ["Ntrack", "track cell count", int],
     }
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", type=str, default="20231218_trackers", help="Result path to analyse")
+    parser.add_argument("-p", "--path", type=str, default="20240125_analysis", help="Result path to analyse")
     parser.add_argument("-dpi", "--dpi", type=int, default=300, help="Resolution dpi")
     args = parser.parse_args()
     # TODO User arguments for -p should be looped through
