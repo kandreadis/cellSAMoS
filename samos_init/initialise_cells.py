@@ -50,15 +50,15 @@ class Spheroid:
     """
 
     def __init__(self, cell_count, cell_radius, poly, add_tracker_cells, tracker_cell_count):
-        self.N = cell_count
+        self.N = int(cell_count)
         self.poly = poly
         self.add_tracker_cells = add_tracker_cells
-        self.Ntracker = tracker_cell_count
+        self.Ntracker = int(tracker_cell_count)
         self.cell_radius = cell_radius
         if self.add_tracker_cells:
             self.R = ((self.N + self.Ntracker) / 0.74) ** (1 / 3) * self.cell_radius
-            self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(self.N))]
-            self.cells.extend(Cell(cell_idx=j, group_idx=2) for j in range(int(self.Ntracker)))
+            self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(self.N)]
+            self.cells.extend(Cell(cell_idx=j, group_idx=2) for j in range(self.N, self.N + self.Ntracker))
         else:
             self.R = (self.N / 0.74) ** (1 / 3) * self.cell_radius
             self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(self.N))]

@@ -27,6 +27,13 @@ def calc_msd(txyz):
     Calculates the mean squared displacement (MSD) as a function of time for a set of xyz
     coordinates given as numpy matrix txNx3
     """
+    tr = np.sqrt(np.sum(np.square(txyz), axis=2))
+    txyz_cm = np.zeros_like(txyz)
+    for t_i, xyz in enumerate(txyz):
+        txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
+    print(txyz)
+    txyz -= txyz_cm
+    print(np.average(txyz_cm, axis=0))
     return np.mean(np.square(np.linalg.norm(txyz - txyz[0], axis=2)), axis=1)
 
 
@@ -46,12 +53,10 @@ def calc_phi(r, radius):
     r_max = np.max(r)
     dr = 2 * np.average(radius)
     r_bins = np.arange(dr / 2, r_max, dr)
-    phi = np.zeros_like(r_bins)
-    for i, r_i in enumerate(r_bins):
-        shell_volume = dr * 4 * np.pi * r_i ** 2
-        in_shell = (r_i - dr / 2 <= r) & (r <= r_i + dr / 2)
-        particles_volume = np.sum((4 / 3) * np.pi * radius[in_shell] ** 3)
-        phi[i] = particles_volume / shell_volume
+    shell_volume = dr * 4 * np.pi * r_bins ** 2
+    in_shell = (r_bins - dr / 2 <= r[:, np.newaxis]) & (r[:, np.newaxis] <= r_bins + dr / 2)
+    particles_volume = np.einsum("ij, i->j", in_shell, (4 / 3) * np.pi * radius ** 3)
+    phi = particles_volume / shell_volume
     return r_bins, phi
 
 

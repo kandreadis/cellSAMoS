@@ -94,7 +94,8 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                                 global_parameters["cell_division_rate"], "alpha",
                                                                 global_parameters["propulsion_alpha"], "re",
                                                                 global_parameters["re_fact"])
-        session_label = f"0D_{date.now().strftime('%Y%m%d_%H-%M')}"
+        # session_label = f"0D_{date.now().strftime('%Y%m%d_%H-%M')}"
+        session_label = "debug"
         run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
                        naming_conv=param_pair_label, run_samos=enable_samos_exec)
 

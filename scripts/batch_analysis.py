@@ -82,7 +82,7 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
             # add_result(target=analysis_result_dict, tag="radius ratio max vs core", item=r_ratio)
             # add_result(target=analysis_result_dict, tag="radial standard deviation", item=r_std)
             add_result(target=analysis_result_dict, tag="phi cells", item=[phi])
-            add_result(target=analysis_result_dict, tag="r cells", item=[r_cells_binned])
+            add_result(target=analysis_result_dict, tag="r", item=[r_cells_binned])
 
             if tracked:
                 add_result(target=analysis_result_dict, tag="msd", item=msd_trackers[dat_iter])
@@ -101,8 +101,9 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
         if tracked:
             plot_lineplot(session=session_label+f" [{Ntrackers} trackers]", data=result_df, x="time frame", y="msd", hue=None,
                           style=None, show=show, dpi=dpi, loglog=True)
-        plot_profile(session=session_label, data=result_df, x="r cells",
-                      y="phi cells", hue="time frame", show=show, dpi=dpi, loglog=False)
+        if result_folder_subdirs_num == 1:
+            plot_profile(session=session_label, data=result_df, x="r",
+                          y="phi cells", hue="time frame", show=show, dpi=dpi, loglog=False)
 
         # plot_boxplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, show=show,
         #              dpi=dpi)
