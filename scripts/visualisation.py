@@ -7,9 +7,10 @@ Author: Konstantinos Andreadis
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import matplotlib.cm as cm
 from paths_init import system_paths
 from scripts.communication_handler import print_log
+import textwrap
 
 # If no dpi is specified by the user when running the visualisation scripts, this resolution variable overwrites.
 png_res_dpi = 300
@@ -70,20 +71,23 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
     Line plot visualisation
     """
     plt.figure()
-    plt.title(f"{y} vs. {x} \n {session}")
+    title = f"{y} vs. {x} {session}"
+    plt.title(textwrap.shorten(title, width=60))
     if type(y) == list:
         for y_ in y:
             sns.lineplot(data, x=x, y=y_, hue=hue, style=style)
     else:
+        if x == "time frame":
+            data[x] = (data[x] - min(data[x].values)) / 100
         sns.lineplot(data, x=x, y=y, hue=hue, style=style)
     if loglog:
-        plt.plot(data[x].values, 0.01 * data[x].values ** 2, label="2", alpha=0.5)
-        plt.plot(data[x].values, 0.01 * data[x].values ** 1, label="1", alpha=0.5)
-        plt.plot(data[x].values, 0.01 * data[x].values ** 0.5, label="0.5", alpha=0.5)
+        plt.plot(data[x].values, 0.001 * data[x].values ** 2, "--", label="2", alpha=0.5)
+        plt.plot(data[x].values, 0.001 * data[x].values ** 1, "--", label="1", alpha=0.5)
+        # plt.plot(data[x].values, 0.001 * data[x].values ** 0.5, label="0.5", alpha=0.5)
         plt.legend()
         plt.loglog()
         plt.grid(which="both")
-        # plt.gca().set_aspect("equal")
+        plt.gca().set_aspect("equal")
     plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}", show)
 
 
@@ -92,10 +96,13 @@ def plot_profile(session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=Fa
     Profile plot visualisation
     """
     plt.figure()
-    plt.title(f"{y} vs. {x} [c={hue} \n {session}]")
+    title = f"{y} vs. {x} [c={hue} \n {session}]"
+    plt.title(textwrap.shorten(title, width=60))
     t_range = data[hue].to_numpy()
     for t_i, t in enumerate(t_range):
-        plt.plot(data[x][t_i][0], data[y][t_i][0], label=t, c=str(1 - (t_i + 1) / len(t_range)))
+        color_float = 1 - (t_i + 1) / len(t_range)
+        plt.plot(data[x][t_i][0], data[y][t_i][0], label=t, c=cm.coolwarm(color_float), marker="o", markersize=2,
+                 alpha=0.8)
     plt.xlabel(x)
     plt.ylabel(y)
     # plt.legend()

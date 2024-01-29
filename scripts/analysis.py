@@ -5,7 +5,6 @@ Author: Konstantinos Andreadis
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def calc_radius_gyration(xyz):
@@ -32,7 +31,8 @@ def calc_msd(txyz):
     for t_i, xyz in enumerate(txyz):
         txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
     txyz -= txyz_cm
-    return np.mean(np.square(np.linalg.norm(txyz - txyz[0], axis=2)), axis=1)
+    tmsd = np.mean(np.square(np.linalg.norm(txyz - txyz[0], axis=2)), axis=1)
+    return tmsd
 
 
 def calc_r(xyz):
@@ -41,7 +41,8 @@ def calc_r(xyz):
     """
     r = np.sqrt(np.sum(np.square(xyz), axis=1))
     xyz_cm = np.average(xyz, axis=0, weights=r)
-    return np.sqrt(np.sum(np.square(xyz - xyz_cm), axis=1))
+    xyz -= xyz_cm
+    return np.sqrt(np.sum(np.square(xyz), axis=1))
 
 
 def calc_phi(r, radius):
@@ -50,10 +51,14 @@ def calc_phi(r, radius):
     """
     r_max = np.max(r)
     dr = 2 * np.average(radius)
-    r_bins = np.arange(dr / 2, r_max, dr)
-    shell_volume = dr * 4 * np.pi * r_bins ** 2
+
+    r_bins = np.arange(0, r_max + dr, dr)
+    shell_surface = 4 * np.pi * r_bins ** 2
+    shell_volume = dr * shell_surface
     in_shell = (r_bins - dr / 2 <= r[:, np.newaxis]) & (r[:, np.newaxis] <= r_bins + dr / 2)
+
     particles_volume = np.einsum("ij, i->j", in_shell, (4 / 3) * np.pi * radius ** 3)
+    np.seterr(invalid='ignore', divide="ignore")
     phi = particles_volume / shell_volume
     return r_bins, phi
 

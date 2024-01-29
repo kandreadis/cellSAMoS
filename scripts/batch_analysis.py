@@ -90,26 +90,26 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
             for item in vars_select.values():
                 add_var(target=analysis_result_dict, var_list=var_list, var_short=item[0], var_long=item[1],
                         var_type=item[2])
+
     # Process result dictionary
     result_df = pd.DataFrame.from_dict(analysis_result_dict, orient="columns")
-    print_log(f"Result dataframe shape:{result_df.shape}")
-    print_log(list(result_df.columns))
+    print_log(f"Result dataframe with shape:{result_df.shape} and categories: {list(result_df.columns)}")
     print_log("----")
     # TODO replace visualisation logic with itertools for all parameter combinations
-    show = True
+    show = False
     if "time frame" in list(result_df.columns):
         if tracked:
-            session_label += f" [{Ntrackers} trackers]"
             plot_lineplot(session=session_label, data=result_df, x="time frame", y="msd", hue=None,
                           style=None, show=show, dpi=dpi, loglog=True)
 
-        plot_profile(session=session_label, data=result_df, x="r",
-                      y="phi cells", hue="time frame", show=show, dpi=dpi, loglog=False)
+        plot_profile(session=session_label, data=result_df, x="r", y="phi cells", hue="time frame", show=show, dpi=dpi,
+                     loglog=False)
 
         plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
                       style=None, show=show, dpi=dpi)
         plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, style=None,
                       show=show, dpi=dpi)
+
         # plot_lineplot(session=session_label, data=result_df, x="time frame",
         #               y=["radius of core sphere", "radius of max sphere"], hue=None,
         #               style=None, show=show, dpi=dpi, loglog=False)
