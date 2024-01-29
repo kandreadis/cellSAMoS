@@ -99,16 +99,17 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
     show = True
     if "time frame" in list(result_df.columns):
         if tracked:
-            plot_lineplot(session=session_label+f" [{Ntrackers} trackers]", data=result_df, x="time frame", y="msd", hue=None,
+            session_label += f" [{Ntrackers} trackers]"
+            plot_lineplot(session=session_label, data=result_df, x="time frame", y="msd", hue=None,
                           style=None, show=show, dpi=dpi, loglog=True)
-        if result_folder_subdirs_num == 1:
-            plot_profile(session=session_label, data=result_df, x="r",
-                          y="phi cells", hue="time frame", show=show, dpi=dpi, loglog=False)
 
-        # plot_boxplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, show=show,
-        #              dpi=dpi)
-        # plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
-        #               style=None, show=show, dpi=dpi)
+        plot_profile(session=session_label, data=result_df, x="r",
+                      y="phi cells", hue="time frame", show=show, dpi=dpi, loglog=False)
+
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
+                      style=None, show=show, dpi=dpi)
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, style=None,
+                      show=show, dpi=dpi)
         # plot_lineplot(session=session_label, data=result_df, x="time frame",
         #               y=["radius of core sphere", "radius of max sphere"], hue=None,
         #               style=None, show=show, dpi=dpi, loglog=False)

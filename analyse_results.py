@@ -25,7 +25,7 @@ def run_analysis():
     }
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", type=str, default="20240126_tracked", help="Result path to analyse")
+    parser.add_argument("-p", "--path", type=str, default="202240129_tracked_analysis", help="Result path to analyse")
     parser.add_argument("-dpi", "--dpi", type=int, default=300, help="Resolution dpi")
     args = parser.parse_args()
     # TODO User arguments for -p should be looped through

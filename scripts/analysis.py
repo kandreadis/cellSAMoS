@@ -31,9 +31,7 @@ def calc_msd(txyz):
     txyz_cm = np.zeros_like(txyz)
     for t_i, xyz in enumerate(txyz):
         txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
-    print(txyz)
     txyz -= txyz_cm
-    print(np.average(txyz_cm, axis=0))
     return np.mean(np.square(np.linalg.norm(txyz - txyz[0], axis=2)), axis=1)
 
 
