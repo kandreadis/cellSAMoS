@@ -5,6 +5,7 @@ Author: Konstantinos Andreadis
 """
 
 import numpy as np
+from scipy.optimize import curve_fit
 
 
 def calc_radius_gyration(xyz):
@@ -21,6 +22,13 @@ def calc_cell_count(xyz):
     return len(xyz)
 
 
+def linear_fit(x, a, b):
+    """
+    Linear fitting function with slope a and offset b
+    """
+    return a * x + b
+
+
 def calc_msd(txyz):
     """
     Calculates the mean squared displacement (MSD) as a function of time for a set of xyz
@@ -32,7 +40,15 @@ def calc_msd(txyz):
         txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
     txyz -= txyz_cm
     tmsd = np.mean(np.square(np.linalg.norm(txyz - txyz[0], axis=2)), axis=1)
-    return tmsd
+    log_time = np.log10(np.arange(0, len(tmsd)))[1:]
+    log_msd = np.log10(tmsd)[1:]
+    popt, pcov = curve_fit(linear_fit, log_time, log_msd)
+    log_slope = popt[0]
+    log_offset = popt[1]
+
+    tmsd_fit = np.zeros_like(tmsd)
+    tmsd_fit[1:] = 10 ** (log_time * log_slope + log_offset)
+    return tmsd, tmsd_fit, log_slope
 
 
 def calc_r(xyz):

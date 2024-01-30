@@ -73,18 +73,19 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
     plt.figure()
     title = f"{y} vs. {x} {session}"
     plt.title(textwrap.shorten(title, width=60))
+    if x == "time frame":
+        data[x] = (data[x] - min(data[x].values)) / 100
     if type(y) == list:
         for y_ in y:
-            sns.lineplot(data, x=x, y=y_, hue=hue, style=style)
+            if y_ == "msd":
+                sns.lineplot(data, x=x, y=y_, hue=None, style=style)
+            elif y_ == "msd fit":
+                sns.lineplot(data, x=x, y=y_, hue=hue, style=style, linestyle="--", palette=['r', 'g'])
+            else:
+                sns.lineplot(data, x=x, y=y_, hue=hue, style=style)
     else:
-        if x == "time frame":
-            data[x] = (data[x] - min(data[x].values)) / 100
         sns.lineplot(data, x=x, y=y, hue=hue, style=style)
     if loglog:
-        plt.plot(data[x].values, 0.001 * data[x].values ** 2, "--", label="2", alpha=0.5)
-        plt.plot(data[x].values, 0.001 * data[x].values ** 1, "--", label="1", alpha=0.5)
-        # plt.plot(data[x].values, 0.001 * data[x].values ** 0.5, label="0.5", alpha=0.5)
-        plt.legend()
         plt.loglog()
         plt.grid(which="both")
         plt.gca().set_aspect("equal")
@@ -101,7 +102,7 @@ def plot_profile(session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=Fa
     t_range = data[hue].to_numpy()
     for t_i, t in enumerate(t_range):
         color_float = 1 - (t_i + 1) / len(t_range)
-        plt.plot(data[x][t_i][0], data[y][t_i][0], label=t, c=cm.coolwarm(color_float), marker="o", markersize=2,
+        plt.plot(data[x][t_i][0], data[y][t_i][0], label=t, c=cm.rainbow(color_float), marker="o", markersize=2,
                  alpha=0.8)
     plt.xlabel(x)
     plt.ylabel(y)
