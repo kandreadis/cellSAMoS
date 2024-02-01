@@ -15,6 +15,8 @@ if __name__ == "__main__":
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
     default_folder_name = f"{date.now().strftime('%Y%m%d')}"
     parser.add_argument("-path", "--group_folder", type=str, default=default_folder_name, help="Group folder name?")
+    # Debugging overwrites the previous folder
+    parser.add_argument("-debug", "--debug", action="store_true", help="Debug: Overwrite previous output?")
 
     # Enable tracker cells embedded within spheroid.
     parser.add_argument("-track", "--add_tracker_cells", action="store_true", help="Add tracker cells to Spheroid?")
@@ -76,7 +78,9 @@ if __name__ == "__main__":
             sweep_type = "2D"
     enable_samos_exec = global_parameters["disable_samos"]
     group_folder = global_parameters["group_folder"]
+    debug = global_parameters["debug"]
     # Execution of main samos handling script(s).
     run_sweep(sweep_type=sweep_type, global_parameters=global_parameters, parameter_1D_sweep=parameter_1D_sweep,
-              parameter_2D_sweep=parameter_2D_sweep, enable_samos_exec=enable_samos_exec, group_folder=group_folder)
+              parameter_2D_sweep=parameter_2D_sweep, enable_samos_exec=enable_samos_exec, group_folder=group_folder,
+              debug=debug)
     print_log("=== End ===")

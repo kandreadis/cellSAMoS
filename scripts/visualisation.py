@@ -80,7 +80,7 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
             if y_ == "msd":
                 sns.lineplot(data, x=x, y=y_, hue=None, style=style)
             elif y_ == "msd fit":
-                sns.lineplot(data, x=x, y=y_, hue=hue, style=style, linestyle="--", palette=['r', 'g'])
+                sns.lineplot(data, x=x, y=y_, hue=hue, style=style, linestyle="--")#, palette=['r', 'g'])
             else:
                 sns.lineplot(data, x=x, y=y_, hue=hue, style=style)
     else:
@@ -101,7 +101,7 @@ def plot_profile(session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=Fa
     plt.title(textwrap.shorten(title, width=60))
     t_range = data[hue].to_numpy()
     for t_i, t in enumerate(t_range):
-        color_float = 1 - (t_i + 1) / len(t_range)
+        color_float = (t_i + 1) / len(t_range)
         plt.plot(data[x][t_i][0], data[y][t_i][0], label=t, c=cm.rainbow(color_float), marker="o", markersize=2,
                  alpha=0.8)
     plt.xlabel(x)

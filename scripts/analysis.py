@@ -76,7 +76,8 @@ def calc_phi(r, radius):
     particles_volume = np.einsum("ij, i->j", in_shell, (4 / 3) * np.pi * radius ** 3)
     np.seterr(invalid='ignore', divide="ignore")
     phi = particles_volume / shell_volume
-    return r_bins, phi
+    r_core = r_bins[phi < 0.2][0]
+    return r_bins, phi, r_core
 
 
 def calc_radius_fit(r):

@@ -82,7 +82,7 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
     visualise_result_tree(path=system_paths["output_samos_dir"], tree_type="output")
 
 
-def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, enable_samos_exec, group_folder):
+def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, enable_samos_exec, group_folder, debug):
     """
     This multi-dimensional sweeping handler operates in 3 sweep_types: Single value, 1 parameter range and 2 parameter
     ranges. In the first case, the global_parameters are used.
@@ -98,6 +98,8 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
         if global_parameters["add_tracker_cells"]:
             param_pair_label += "_track-{}".format(global_parameters["tracker_cell_count"])
         session_label = f"{param_pair_label}_{date.now().strftime('%H%M%S')}"
+        if debug:
+            session_label = "debug"
         run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
                        naming_conv=param_pair_label, run_samos=enable_samos_exec)
 
