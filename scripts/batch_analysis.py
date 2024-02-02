@@ -65,7 +65,7 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
             radii_cells = read_radii(data=dat_content, group_index=1)
             cell_count = calc_cell_count(xyz_cells)
             r_cells = calc_r(xyz_cells)
-            r_cells_binned, phi, r_core = calc_phi(r_cells, radii_cells)
+            r_cells_binned, phi, dphidr, r_core = calc_phi(r_cells, radii_cells)
             r_gyration_cells = calc_radius_gyration(xyz=xyz_cells)
 
             # Add found results
@@ -76,6 +76,7 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
             add_result(target=analysis_result_dict, tag="radius of gyration", item=r_gyration_cells)
             add_result(target=analysis_result_dict, tag="radius of core", item=r_core)
             add_result(target=analysis_result_dict, tag="phi cells", item=[phi])
+            add_result(target=analysis_result_dict, tag="derivative of phi cells", item=[dphidr])
             add_result(target=analysis_result_dict, tag="r", item=[r_cells_binned])
 
             if tracked:
@@ -86,8 +87,6 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
             for item in vars_select.values():
                 add_var(target=analysis_result_dict, var_list=var_list, var_short=item[0], var_long=item[1],
                         var_type=item[2])
-
-
 
     # Process result dictionary
     result_df = pd.DataFrame.from_dict(analysis_result_dict, orient="columns")
@@ -104,21 +103,17 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
 
         plot_profile(session=session_label, data=result_df, x="r", y="phi cells", hue="time frame", show=show, dpi=dpi,
                      loglog=False)
+        plot_profile(session=session_label, data=result_df, x="r", y="derivative of phi cells", hue="time frame",
+                     show=show, dpi=dpi,
+                     loglog=False)
 
         plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of core", hue=None,
                       style=None, show=show, dpi=dpi)
 
-        #
-        # plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
-        #               style=None, show=show, dpi=dpi)
-        # plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, style=None,
-        #               show=show, dpi=dpi)
-
-        # plot_lineplot(session=session_label, data=result_df, x="time frame",
-        #               y=["radius of core sphere", "radius of max sphere"], hue=None,
-        #               style=None, show=show, dpi=dpi, loglog=False)
-        # plot_lineplot(session=session_label, data=result_df, x="time frame",
-        #               y=["radius ratio max vs core", "radial standard deviation"], hue=None, style=None, show=show, dpi=dpi, loglog=False)
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
+                      style=None, show=show, dpi=dpi)
+        plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, style=None,
+                      show=show, dpi=dpi)
 
         # if "cell radius polydispersity" in list(result_df.columns):
     #     plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count",
@@ -173,15 +168,6 @@ def analyse_root_subfolders(vars_select, result_folder, dpi):
     """
     root = os.path.join(system_paths["output_samos_dir"], result_folder)
     print_log(f"|| Searching {root}...")
-    # try:
-    #     session_root = os.listdir(root)
-    #     for session_folder in session_root:
-    #         print_log(f"-- {session_folder} --")
-    #         analyse_folder(root, session_folder, vars_select, result_folder, dpi)
-    # except Exception as error:
-    #     print("An error occured during analysis, e.g. folder not found!")
-    #     print(type(error).__name__, "–", error)
-
     session_root = os.listdir(root)
     for session_folder in session_root:
         print_log(f"-- {session_folder} --")

@@ -67,17 +67,15 @@ def calc_phi(r, radius):
     """
     r_max = np.max(r)
     dr = 2 * np.average(radius)
-
-    r_bins = np.arange(0, r_max + dr, dr)
+    r_bins = np.arange(dr, r_max + dr, dr)
     shell_surface = 4 * np.pi * r_bins ** 2
     shell_volume = dr * shell_surface
     in_shell = (r_bins - dr / 2 <= r[:, np.newaxis]) & (r[:, np.newaxis] <= r_bins + dr / 2)
-
     particles_volume = np.einsum("ij, i->j", in_shell, (4 / 3) * np.pi * radius ** 3)
-    np.seterr(invalid='ignore', divide="ignore")
     phi = particles_volume / shell_volume
-    r_core = r_bins[phi < 0.2][0]
-    return r_bins, phi, r_core
+    dphidr = np.gradient(phi)
+    r_core = np.argmin(dphidr)
+    return r_bins, phi, dphidr, r_core
 
 
 def calc_radius_fit(r):
