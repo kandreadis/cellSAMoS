@@ -5,12 +5,13 @@ Author: Konstantinos Andreadis
 
 system_paths = {
     # Path of samos executable "..../samos"
-    "samos_dir": "/home/andreadis/Documents/samos_build/build/samos",
+    "samos_dir": "/home/andreadis/Documents/SAMoS-ABPactreact/build/samos",
     # Path where simulation results should be saved ".../samos_output"
     "output_samos_dir": "/data1/andreadis/samos_output",
     # Path of configuration file(s) ".../*.conf"
     "conf_file": "/data1/andreadis/CellSim/samos_init/spheroid.conf",
     "conf_file_trackers": "/data1/andreadis/CellSim/samos_init/spheroid_trackers.conf",
+    "conf_file_plane": "/data1/andreadis/CellSim/samos_init/plane.conf",
     # Path of particle initialisation file ".../*.py"
     "init_particles_file": "/data1/andreadis/CellSim/samos_init/initialise_cells.py",
     # Path of terminal output logging file ".../*.log"

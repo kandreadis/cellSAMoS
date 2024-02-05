@@ -36,8 +36,8 @@ def plot_handler(session, dpi, label, show):
     Resizes font, changes layout and saves figure. If show is True, it also displays the plot.
     """
     plt.rc('font', size=10)  # legend fontsize
-    plt.rc('axes', labelsize=16)  # fontsize of the x and y labels
-    plt.rc('figure', titlesize=16)  # fontsize of the figure title
+    plt.rc('axes', labelsize=14)  # fontsize of the x and y labels
+    plt.rc('figure', titlesize=14)  # fontsize of the figure title
     plt.tight_layout()
     plt.savefig(create_png_path(session, label), dpi=dpi, bbox_inches="tight")
     if show:
@@ -74,7 +74,7 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
     title = f"{y} vs. {x} {session}"
     plt.title(textwrap.shorten(title, width=60))
     if x == "time frame":
-        data[x] = (data[x] - min(data[x].values)) / 100
+        data[x] = (data[x] - min(data[x].values)) / 1000
     if type(y) == list:
         for y_ in y:
             if y_ == "msd":
@@ -122,3 +122,25 @@ def plot_heatmap(session, data, rows, columns, values, show=True, cmap="coolwarm
     ax = sns.heatmap(pivot_result, linewidth=1, cmap=cmap)  # annot = True
     ax.invert_yaxis()
     plot_handler(session, dpi, f"heat_{values}_for_{rows}_vs_{columns}", show)
+
+def plot_phase_diagram(session, data, rows, columns, values, show=True, cmap="coolwarm", dpi=png_res_dpi):
+    """
+    Phase diagram visualisation
+    """
+    title = f"{values} for {rows} vs. {columns} \n {session}"
+    print("Averaging plot over time...")
+    # avg_data = data.groupby([rows, columns])[values].mean().unstack()
+    # ax = sns.heatmap(avg_data)
+    # ax.invert_yaxis()
+    sns.scatterplot(data=data, x=columns, y=rows, hue=values, palette=cmap, marker="s",legend=False,s=100).set(title=title)
+
+    plt.yscale("log")
+    # import matplotlib as mpl
+    # norm = plt.colors.LogNorm(data[values].min(), data[values].max())
+    norm = plt.Normalize(data[values].min(), data[values].max())
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    plt.colorbar(sm, label=values,ax=plt.gca())
+
+    # sns.scatterplot(data=data, x=columns, y=rows, hue=values, palette=cmap, marker="s",legend=True,s=100).set(title=title)
+    plot_handler(session, dpi, f"phase_{values}_for_{rows}_vs_{columns}", show)

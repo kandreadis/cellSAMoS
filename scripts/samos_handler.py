@@ -21,6 +21,8 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
     samos_dir = system_paths["samos_dir"]
     if params["add_tracker_cells"]:
         configuration_file = system_paths["conf_file_trackers"]
+    elif params["plane"]:
+        configuration_file = system_paths["conf_file_plane"]
     else:
         configuration_file = system_paths["conf_file"]
     intialisation_file = system_paths["init_particles_file"]
@@ -51,19 +53,26 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
     with open(new_configuration_dir, "r+") as conf_file:
         configuration = conf_file.read()
         configuration = re.sub("@DIVRATE", str(params["cell_division_rate"]), configuration)
-        configuration = re.sub("@ALPHA", str(params["propulsion_alpha"]), configuration)
+        configuration = re.sub("@V0", str(params["v0"]), configuration)
         configuration = re.sub("@NUMTIMESTEPS", str(params["num_time_steps"]), configuration)
         configuration = re.sub("@REFACT", str(params["re_fact"]), configuration)
         configuration = re.sub("@POLY", str(params["cell_radius_poly"]), configuration)
+
+        configuration = re.sub("@SEED", str(params["seed"]), configuration)
+        configuration = re.sub("@Dr", str(params["Dr"]), configuration)
+        configuration = re.sub("@L", str(params["L"]), configuration)
         conf_file.seek(0)
         conf_file.write(configuration)
         conf_file.truncate()
 
     # Executes Python script to initialise particles and save to the result folder
-    collective = init_cells.Spheroid(cell_radius=params["cell_radius"],
-                                     cell_count=params["cell_count"], poly=params["cell_radius_poly"],
-                                     add_tracker_cells=params["add_tracker_cells"],
-                                     tracker_cell_count=params["tracker_cell_count"])
+    if params["plane"]:
+        collective = init_cells.Plane(L=params["L"], phi=params["phi"], cell_radius=params["cell_radius"],
+                                      poly=params["cell_radius_poly"])
+    else:
+        collective = init_cells.Spheroid(cell_radius=params["cell_radius"], cell_count=params["cell_count"],
+                                         poly=params["cell_radius_poly"], add_tracker_cells=params["add_tracker_cells"],
+                                         tracker_cell_count=params["tracker_cell_count"])
     init_cells.save_initial_cells(collective.cells, new_particles_dir)
 
     # Finally, moves to the result folder and executes SAMoS using the configuration file.
@@ -82,24 +91,33 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
     visualise_result_tree(path=system_paths["output_samos_dir"], tree_type="output")
 
 
-def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, enable_samos_exec, group_folder, debug):
+def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, enable_samos_exec, group_folder,
+              debug):
     """
     This multi-dimensional sweeping handler operates in 3 sweep_types: Single value, 1 parameter range and 2 parameter
     ranges. In the first case, the global_parameters are used.
     """
     if sweep_type == "0D":
         print_log("!! Running single simulation without sweep")
-        param_pair_label = "t-{}_N-{}_{}-{}_{}-{}_{}-{}".format(global_parameters["num_time_steps"],
-                                                                global_parameters["cell_count"], "div",
-                                                                global_parameters["cell_division_rate"], "alpha",
-                                                                global_parameters["propulsion_alpha"], "re",
-                                                                global_parameters["re_fact"])
-
+        param_pair_label = "t-{}_N-{}_{}-{}_{}-{}_{}-{}".format(
+            global_parameters["num_time_steps"], global_parameters["cell_count"],
+            "div", global_parameters["cell_division_rate"], "v0", global_parameters["v0"],
+            "re", global_parameters["re_fact"])
         if global_parameters["add_tracker_cells"]:
             param_pair_label += "_track-{}".format(global_parameters["tracker_cell_count"])
-        session_label = f"{param_pair_label}_{date.now().strftime('%H%M%S')}"
+
+        if global_parameters["plane"]:
+            param_pair_label = "t-{}_L-{}_re-{}_phi-{}_v0-{}_Dr-{}".format(global_parameters["num_time_steps"],
+                                                                           global_parameters["L"],
+                                                                           global_parameters["re_fact"],
+                                                                           global_parameters["phi"],
+                                                                           global_parameters["v0"],
+                                                                           global_parameters["Dr"])
+
+        session_label = f"{param_pair_label}_{date.now().strftime('dump%H%M%S')}"
         if debug:
             session_label = "debug"
+            param_pair_label = "debug"
         run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
                        naming_conv=param_pair_label, run_samos=enable_samos_exec)
 
@@ -110,15 +128,14 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
         var_1_range = None
         if parameter_1D_sweep["var_1_type"] == "log":
             var_1_range = np.logspace(np.log10(parameter_1D_sweep["var_1_start"]),
-                                      np.log(parameter_1D_sweep["var_1_end"]),
-                                      parameter_1D_sweep["var_1_num"])
+                                      np.log10(parameter_1D_sweep["var_1_end"]), parameter_1D_sweep["var_1_num"])
         if parameter_1D_sweep["var_1_type"] == "linear":
             var_1_range = np.linspace(parameter_1D_sweep["var_1_start"], parameter_1D_sweep["var_1_end"],
                                       parameter_1D_sweep["var_1_num"])
         var_1_range = np.round(var_1_range, 5)
         print_log(f"!! Starting 1D parameter sweep for a total of {len(var_1_range)} parameter values...")
         i_progress = 0
-        for div_idx, var1 in enumerate(var_1_range):
+        for var1_idx, var1 in enumerate(var_1_range):
             i_progress += 1
             progress = f"{round(100 * i_progress / (len(var_1_range)))} %"
             status = "{} {}".format(parameter_1D_sweep["var_1"], var1)
@@ -131,6 +148,12 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
             if parameter_1D_sweep["var_1_short"] == "N":
                 param_pair_label = "t-{}_{}-{}".format(global_parameters["num_time_steps"],
                                                        parameter_1D_sweep["var_1_short"], var1)
+            if global_parameters["plane"]:
+                param_pair_label = "t-{}_L-{}_re-{}_phi-{}_{}-{}".format(global_parameters["num_time_steps"],
+                                                                         global_parameters["L"],
+                                                                         global_parameters["re_fact"],
+                                                                         global_parameters["phi"],
+                                                                         parameter_1D_sweep["var_1_short"], var1)
             run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
                            naming_conv=param_pair_label, run_samos=enable_samos_exec)
 
@@ -148,14 +171,14 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
         var_1_range, var_2_range = None, None
         if parameter_2D_sweep["var_1_type"] == "log":
             var_1_range = np.logspace(np.log10(parameter_2D_sweep["var_1_start"]),
-                                      np.log(parameter_2D_sweep["var_1_end"]),
+                                      np.log10(parameter_2D_sweep["var_1_end"]),
                                       parameter_2D_sweep["var_1_num"])
         if parameter_2D_sweep["var_1_type"] == "linear":
             var_1_range = np.linspace(parameter_2D_sweep["var_1_start"], parameter_2D_sweep["var_1_end"],
                                       parameter_2D_sweep["var_1_num"])
         if parameter_2D_sweep["var_2_type"] == "log":
             var_2_range = np.logspace(np.log10(parameter_2D_sweep["var_2_start"]),
-                                      np.log(parameter_2D_sweep["var_2_end"]),
+                                      np.log10(parameter_2D_sweep["var_2_end"]),
                                       parameter_2D_sweep["var_2_num"])
         if parameter_2D_sweep["var_2_type"] == "linear":
             var_2_range = np.linspace(parameter_2D_sweep["var_2_start"], parameter_2D_sweep["var_2_end"],
@@ -165,8 +188,8 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
         print_log(
             f"!! Starting 2D parameter sweep for a total of {len(var_1_range) * len(var_2_range)} parameter pairs...")
         i_progress = 0
-        for div_idx, var1 in enumerate(var_1_range):
-            for alpha_idx, var2 in enumerate(var_2_range):
+        for var1_idx, var1 in enumerate(var_1_range):
+            for var2_idx, var2 in enumerate(var_2_range):
                 i_progress += 1
                 progress = f"{round(100 * i_progress / (len(var_1_range) * len(var_2_range)))} %"
                 status = "{} {} {} {}".format(parameter_2D_sweep["var_1"], var1, parameter_2D_sweep["var_2"], var2)
@@ -178,5 +201,14 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                                   global_parameters["cell_count"],
                                                                   parameter_2D_sweep["var_1_short"], var1,
                                                                   parameter_2D_sweep["var_2_short"], var2)
+                if global_parameters["plane"]:
+                    param_pair_label = "t-{}_L-{}_re-{}_phi-{}_{}-{}_{}-{}".format(global_parameters["num_time_steps"],
+                                                                                   global_parameters["L"],
+                                                                                   global_parameters["re_fact"],
+                                                                                   global_parameters["phi"],
+                                                                                   parameter_2D_sweep["var_1_short"],
+                                                                                   var1,
+                                                                                   parameter_2D_sweep["var_2_short"],
+                                                                                   var2)
                 run_simulation(params=global_parameters, group_folder=group_folder, session=session_label,
                                naming_conv=param_pair_label, run_samos=enable_samos_exec)

@@ -8,8 +8,9 @@ import numpy as np
 import pandas as pd
 
 from paths_init import system_paths
-from scripts.data_handler import read_dat, read_xyz, add_result, add_var, read_radii
-from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot, plot_boxplot, plot_profile
+from scripts.data_handler import read_dat, read_xyz, add_result, add_var, read_radii, read_vel
+from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot, plot_boxplot, plot_profile, \
+    plot_phase_diagram
 from scripts.analysis import calc_radius_gyration, calc_cell_count, calc_msd, calc_r, calc_phi
 from scripts.communication_handler import print_log
 
@@ -62,22 +63,33 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
             dat_content = read_dat(path=dat_file_dir)
             time_index = int(os.path.splitext(os.path.basename(dat_file_dir))[0].split("_")[-1])
             xyz_cells = read_xyz(data=dat_content, group_index=1)
-            radii_cells = read_radii(data=dat_content, group_index=1)
-            cell_count = calc_cell_count(xyz_cells)
-            r_cells = calc_r(xyz_cells)
-            r_cells_binned, phi, dphidr, r_core = calc_phi(r_cells, radii_cells)
-            r_gyration_cells = calc_radius_gyration(xyz=xyz_cells)
+
+            if "phi" in var_list[3]:
+                plane = True
+            if plane:
+                vel_cells = read_vel(data=dat_content, group_index=1)
+                avg_vel = np.average(np.sqrt(np.sum(np.square(vel_cells), axis=1)), axis=0)
+            else:
+                radii_cells = read_radii(data=dat_content, group_index=1)
+                cell_count = calc_cell_count(xyz_cells)
+                r_cells = calc_r(xyz_cells)
+                r_cells_binned, phi, dphidr, r_core = calc_phi(r_cells, radii_cells)
+                r_gyration_cells = calc_radius_gyration(xyz=xyz_cells)
 
             # Add found results
             add_result(target=analysis_result_dict, tag="dir", item=output_dir)
             add_result(target=analysis_result_dict, tag=".data dir", item=dat_dir)
             add_result(target=analysis_result_dict, tag="time frame", item=time_index)
-            add_result(target=analysis_result_dict, tag="cell count", item=cell_count)
-            add_result(target=analysis_result_dict, tag="radius of gyration", item=r_gyration_cells)
-            add_result(target=analysis_result_dict, tag="radius of core", item=r_core)
-            add_result(target=analysis_result_dict, tag="phi cells", item=[phi])
-            add_result(target=analysis_result_dict, tag="derivative of phi cells", item=[dphidr])
-            add_result(target=analysis_result_dict, tag="r", item=[r_cells_binned])
+
+            if plane:
+                add_result(target=analysis_result_dict, tag="average velocity", item=avg_vel)
+            else:
+                add_result(target=analysis_result_dict, tag="cell count", item=cell_count)
+                add_result(target=analysis_result_dict, tag="radius of gyration", item=r_gyration_cells)
+                add_result(target=analysis_result_dict, tag="radius of core", item=r_core)
+                add_result(target=analysis_result_dict, tag="phi cells", item=[phi])
+                add_result(target=analysis_result_dict, tag="derivative of phi cells", item=[dphidr])
+                add_result(target=analysis_result_dict, tag="r", item=[r_cells_binned])
 
             if tracked:
                 add_result(target=analysis_result_dict, tag="msd", item=msd_trackers[dat_iter])
@@ -87,33 +99,42 @@ def analyse_folder(root, session_folder, vars_select, result_folder, dpi):
             for item in vars_select.values():
                 add_var(target=analysis_result_dict, var_list=var_list, var_short=item[0], var_long=item[1],
                         var_type=item[2])
-
+            if dat_iter == 20: break
     # Process result dictionary
     result_df = pd.DataFrame.from_dict(analysis_result_dict, orient="columns")
     print_log(f"Result dataframe with shape:{result_df.shape} and categories: {list(result_df.columns)}")
     print_log("----")
     # TODO replace visualisation logic with itertools for all parameter combinations
     show = True
+    print(min(result_df["average velocity"]), max(result_df["average velocity"]))
     if "time frame" in list(result_df.columns):
         if tracked:
             plot_lineplot(session=session_label, data=result_df, x="time frame", y=["msd", "msd fit"], hue="msd slope",
                           style=None, show=show, dpi=dpi, loglog=True)
             plot_lineplot(session=session_label, data=result_df, x="time frame", y="msd", hue="msd slope",
                           style=None, show=show, dpi=dpi, loglog=True)
+        if plane:
+            plot_phase_diagram(session=session_label, data=result_df, rows="rotational diffusion Dr",
+                         columns="propulsion v0", values="average velocity", show=show, dpi=dpi)
+            # plot_lineplot(session=session_label, data=result_df, x="time frame", y="average velocity",
+            #               hue="packing fraction phi", style=None, show=show, dpi=dpi, loglog=False)
+            # plot_lineplot(session=session_label, data=result_df, x="propulsion v0", y="average velocity",
+            #               hue="rotational diffusion Dr", style=None, show=show, dpi=dpi, loglog=False)
+            # plot_lineplot(session=session_label, data=result_df, x="rotational diffusion Dr", y="average velocity",
+            #               hue="propulsion v0", style=None, show=show, dpi=dpi, loglog=False)
+        else:
+            plot_profile(session=session_label, data=result_df, x="r", y="phi cells", hue="time frame", show=show,
+                         dpi=dpi, loglog=False)
+            plot_profile(session=session_label, data=result_df, x="r", y="derivative of phi cells", hue="time frame",
+                         show=show, dpi=dpi, loglog=False)
 
-        plot_profile(session=session_label, data=result_df, x="r", y="phi cells", hue="time frame", show=show, dpi=dpi,
-                     loglog=False)
-        plot_profile(session=session_label, data=result_df, x="r", y="derivative of phi cells", hue="time frame",
-                     show=show, dpi=dpi,
-                     loglog=False)
+            plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of core", hue=None,
+                          style=None, show=show, dpi=dpi)
 
-        plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of core", hue=None,
-                      style=None, show=show, dpi=dpi)
-
-        plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
-                      style=None, show=show, dpi=dpi)
-        plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, style=None,
-                      show=show, dpi=dpi)
+            plot_lineplot(session=session_label, data=result_df, x="time frame", y="radius of gyration", hue=None,
+                          style=None, show=show, dpi=dpi)
+            plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count", hue=None, style=None,
+                          show=show, dpi=dpi)
 
         # if "cell radius polydispersity" in list(result_df.columns):
     #     plot_lineplot(session=session_label, data=result_df, x="time frame", y="cell count",

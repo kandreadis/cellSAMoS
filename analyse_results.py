@@ -18,14 +18,17 @@ def run_analysis():
         0: ["N", "initial cell count", int],
         1: ["t", "max time steps", int],
         2: ["div", "cell division rate", float],
-        3: ["alpha", "propulsion alpha", float],
+        3: ["v0", "propulsion v0", float],
         4: ["re", "potential re factor", float],
         5: ["poly", "cell radius polydispersity", float],
         6: ["Ntrack", "track cell count", int],
+        7: ["L", "box dimension L", float],
+        8: ["phi", "packing fraction phi", float],
+        9: ["Dr", "rotational diffusion Dr", float],
     }
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", type=str, default="20240131", help="Result path to analyse")
+    parser.add_argument("-p", "--path", type=str, default="20x20", help="Result path to analyse")
     parser.add_argument("-dpi", "--dpi", type=int, default=300, help="Resolution dpi")
     args = parser.parse_args()
     # TODO User arguments for -p should be looped through

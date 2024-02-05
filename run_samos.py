@@ -26,10 +26,12 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--num_time_steps", type=int, default=10000, help="Number of time steps")
     parser.add_argument("-N", "--cell_count", type=int, default=200, help="Number of initial cells")
 
+    parser.add_argument("-v0", "--v0", type=float, default=0.1, help="External propulsion factor")
+    parser.add_argument("-Dr", "--Dr", type=float, default=0.1, help="Rotational Diffusion?")
+
     parser.add_argument("-r", "--cell_radius", type=float, default=1.0, help="Mean cell radius")
     parser.add_argument("-rpoly", "--cell_radius_poly", type=float, default=0.3, help="Polydispersity of cell radius")
     parser.add_argument("-div", "--cell_division_rate", type=float, default=0.1, help="Division rate of a cell")
-    parser.add_argument("-alpha", "--propulsion_alpha", type=float, default=0.1, help="External propulsion factor")
     parser.add_argument("-re", "--re_fact", type=float, default=1.15, help="Soft sphere potential factor")
 
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
@@ -56,6 +58,13 @@ if __name__ == "__main__":
     parser.add_argument("-v2end", "--var_2_end", type=float, default=0.1, help="Range end of variable parameter 2?")
     parser.add_argument("-v2num", "--var_2_num", type=int, default=5,
                         help="Range number of points of variable parameter 2?")
+
+    # Enable tracker cells embedded within spheroid.
+    parser.add_argument("-plane", "--plane", action="store_true", help="Confine cells to 2D plane?")
+    parser.add_argument("-L", "--L", type=float, default=10.0, help="Plane size L?")
+    parser.add_argument("-phi", "--phi", type=float, default=1.0, help="Packing fraction phi?")
+    parser.add_argument("-seed", "--seed", type=int, default=1, help="Random seed?")
+
     args = parser.parse_args()
     if args.add_tracker_cells:
         args.group_folder += "_tracked"

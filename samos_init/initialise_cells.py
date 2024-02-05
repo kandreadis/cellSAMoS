@@ -1,5 +1,5 @@
 """
-Initialisation of spheroid cells for SAMoS.
+Initialisation of cells for SAMoS.
 !! This cannot be run independently, it is a helper script.
 Author: Konstantinos Andreadis.
 """
@@ -19,13 +19,13 @@ def save_initial_cells(cells_data, outfile):
     out.write('# Total of %s cells\n' % str(len(cells_data)))
     out.write('# Generated on : %s\n' % str(gentime))
     out.write('# id  type radius  x   y   z   vx   vy   vz   nx   ny   nz\n')
-    for p in cells_data:
-        x, y, z = p.cell_position
-        vx, vy, vz = p.cell_velocity
-        nx, ny, nz = p.cell_direction
+    for cell in cells_data:
+        x, y, z = cell.position
+        vx, vy, vz = cell.velocity
+        nx, ny, nz = cell.direction
         out.write(
             '%d  %d  %f %f  %f  %f  %f  %f  %f  %f  %f  %f\n' % (
-                p.cell_idx, p.group_idx, p.cell_radius, x, y, z, vx, vy, vz, nx, ny, nz))
+                cell.idx, cell.type_idx, cell.radius, x, y, z, vx, vy, vz, nx, ny, nz))
     out.close()
     print_log(f"Saved cells to {outfile}!")
 
@@ -35,13 +35,13 @@ class Cell:
     A single cell is created.
     """
 
-    def __init__(self, cell_idx=0, group_idx=1, cell_radius=1.0):
-        self.cell_idx = cell_idx
-        self.group_idx = group_idx
-        self.cell_radius = cell_radius
-        self.cell_position = [0.0, 0.0, 0.0]
-        self.cell_velocity = [0.0, 0.0, 0.0]
-        self.cell_direction = [0.0, 0.0, 0.0]
+    def __init__(self, idx=0, type_idx=1, radius=1.0):
+        self.idx = idx
+        self.type_idx = type_idx
+        self.radius = radius
+        self.position = [0.0, 0.0, 0.0]
+        self.velocity = [0.0, 0.0, 0.0]
+        self.direction = [0.0, 0.0, 0.0]
 
 
 class Spheroid:
@@ -57,11 +57,11 @@ class Spheroid:
         self.cell_radius = cell_radius
         if self.add_tracker_cells:
             self.R = ((self.N + self.Ntracker) / 0.74) ** (1 / 3) * self.cell_radius
-            self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(self.N)]
-            self.cells.extend(Cell(cell_idx=j, group_idx=2) for j in range(self.N, self.N + self.Ntracker))
+            self.cells = [Cell(idx=i, type_idx=1) for i in range(self.N)]
+            self.cells.extend(Cell(idx=j, type_idx=2) for j in range(self.N, self.N + self.Ntracker))
         else:
             self.R = (self.N / 0.74) ** (1 / 3) * self.cell_radius
-            self.cells = [Cell(cell_idx=i, group_idx=1) for i in range(int(self.N))]
+            self.cells = [Cell(idx=i, type_idx=1) for i in range(int(self.N))]
 
         def un(a, b):
             """
@@ -84,14 +84,35 @@ class Spheroid:
             nx = np.cos(phi) * np.sin(np.arccos(costheta))
             ny = np.sin(phi) * np.sin(np.arccos(costheta))
             nz = costheta
-            if cell.group_idx == 2:
-                cell.cell_radius = self.cell_radius
+            if cell.type_idx == 2:
+                cell.radius = self.cell_radius
             else:
-                cell.cell_radius = self.cell_radius * un(1 - 0.5 * self.poly, 1 + 0.5 * self.poly)
-            cell.cell_position = [x, y, z]
-            cell.cell_velocity = [vx, vy, vz]
-            cell.cell_direction = [nx, ny, nz]
+                cell.radius = self.cell_radius * un(1 - 0.5 * self.poly, 1 + 0.5 * self.poly)
+            cell.position = [x, y, z]
+            cell.velocity = [vx, vy, vz]
+            cell.direction = [nx, ny, nz]
 
+class Plane:
+    """
+    A plane is initialised using a population(collective) of cells.
+    """
+    def __init__(self, L, phi, cell_radius, poly):
+        self.L = L
+        self.cell_radius = cell_radius
+        self.poly = poly
+        self.phi = phi
+        area = L ** 2
+        self.N = int(self.phi * area / (np.pi * self.cell_radius ** 2))
+        self.cells = [Cell(idx=i, type_idx=1) for i in range(self.N)]
+        for cell in self.cells:
+            x = self.L * np.random.uniform(-0.5, 0.5)
+            y = self.L * np.random.uniform(-0.5, 0.5)
+            z = 0.0
+            alpha = np.random.uniform(0, 2 * np.pi)
+            cell.radius = self.cell_radius * np.random.uniform(1 - 0.5 * self.poly, 1 + 0.5 * self.poly)
+            cell.position = [x, y, z]
+            cell.velocity = [0.0, 0.0, 0.0]
+            cell.direction = [np.cos(alpha), np.sin(alpha), 0.0]
 
 def plot_initial_cells(particles_list):
     """
@@ -100,5 +121,5 @@ def plot_initial_cells(particles_list):
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(111, projection='3d')
     for particle in particles_list:
-        ax.scatter(*particle.cell_position, c=particle.group_idx, s=100, alpha=0.6)
+        ax.scatter(*particle.position, c=particle.type_idx, s=100, alpha=0.6)
     plt.show()

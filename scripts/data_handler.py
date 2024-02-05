@@ -32,6 +32,16 @@ def read_xyz(data, group_index):
     zcoords = data["z"].to_numpy()
     return np.column_stack([xcoords, ycoords, zcoords])
 
+def read_vel(data, group_index):
+    """
+    For a given cell group, retrieve all xyz velocity components.
+    """
+    data = data.groupby("type").get_group(group_index)
+    velx = data["vx"].to_numpy()
+    vely = data["vy"].to_numpy()
+    velz = data["vz"].to_numpy()
+    return np.column_stack([velx, vely, velz])
+
 def read_radii(data, group_index):
     """
     For a given cell group, retrieve all xyz cell positions.
