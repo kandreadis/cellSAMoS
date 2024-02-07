@@ -66,15 +66,13 @@ def plot_scatterplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi
     plot_handler(session, dpi, f"scatter_{hue}_for_{y}_vs_{x}", show)
 
 
-def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, loglog=False):
+def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, loglog=False, logx=False, logy=False):
     """
     Line plot visualisation
     """
     plt.figure()
     title = f"{y} vs. {x} {session}"
     plt.title(textwrap.shorten(title, width=60))
-    if x == "time frame":
-        data[x] = (data[x] - min(data[x].values)) / 1000
     if type(y) == list:
         for y_ in y:
             if y_ == "msd":
@@ -84,12 +82,24 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
             else:
                 sns.lineplot(data, x=x, y=y_, hue=hue, style=style)
     else:
-        sns.lineplot(data, x=x, y=y, hue=hue, style=style)
+        if x != "time":
+            sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o")
+        else:
+            sns.lineplot(data, x=x, y=y, hue=hue, style=style)
     if loglog:
         plt.loglog()
-        plt.grid(which="both")
+        plt.grid(which="both", axis="both")
         plt.gca().set_aspect("equal")
-    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}", show)
+    if logx:
+        plt.xscale("log")
+        plt.grid(which="both", axis="x")
+        # plt.gca().set_aspect("equal")
+    if logy:
+        plt.yscale("log")
+        plt.grid(which="both", axis="y")
+        # plt.gca().set_aspect("equal")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+    plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}", show)
 
 
 def plot_profile(session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=False):
@@ -129,18 +139,20 @@ def plot_phase_diagram(session, data, rows, columns, values, show=True, cmap="co
     """
     title = f"{values} for {rows} vs. {columns} \n {session}"
     print("Averaging plot over time...")
-    # avg_data = data.groupby([rows, columns])[values].mean().unstack()
-    # ax = sns.heatmap(avg_data)
-    # ax.invert_yaxis()
-    sns.scatterplot(data=data, x=columns, y=rows, hue=values, palette=cmap, marker="s",legend=False,s=100).set(title=title)
+    avg_data = data.groupby([rows, columns])[values].mean().unstack()
+    plt.figure(figsize=(5, 5))
+    plt.title(title)
+    ax = sns.heatmap(avg_data, linewidth=1, cmap=cmap)
+    ax.invert_yaxis()
 
-    plt.yscale("log")
-    # import matplotlib as mpl
-    # norm = plt.colors.LogNorm(data[values].min(), data[values].max())
-    norm = plt.Normalize(data[values].min(), data[values].max())
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    plt.colorbar(sm, label=values,ax=plt.gca())
 
-    # sns.scatterplot(data=data, x=columns, y=rows, hue=values, palette=cmap, marker="s",legend=True,s=100).set(title=title)
+    # sns.scatterplot(data=data, x=columns, y=rows, hue=values, palette=cmap, marker="s",legend=False,s=1000).set(title=title)
+    # plt.yscale("log")
+    # # import matplotlib as mpl
+    # # norm = plt.colors.LogNorm(data[values].min(), data[values].max())
+    # norm = plt.Normalize(data[values].min(), data[values].max())
+    # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    # sm.set_array([])
+    # plt.colorbar(sm, label=values,ax=plt.gca())
+
     plot_handler(session, dpi, f"phase_{values}_for_{rows}_vs_{columns}", show)

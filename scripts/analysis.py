@@ -29,17 +29,43 @@ def linear_fit(x, a, b):
     return a * x + b
 
 
-def calc_msd(txyz):
+def calc_msd(tnxyz, L, substract_CM=False):
     """
     Calculates the mean squared displacement (MSD) as a function of time for a set of xyz
     coordinates given as numpy matrix txNx3
     """
-    tr = np.sqrt(np.sum(np.square(txyz), axis=2))
-    txyz_cm = np.zeros_like(txyz)
-    for t_i, xyz in enumerate(txyz):
-        txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
-    txyz -= txyz_cm
-    tmsd = np.mean(np.square(np.linalg.norm(txyz - txyz[0], axis=2)), axis=1)
+    tr = np.sqrt(np.sum(np.square(tnxyz), axis=2))
+    if substract_CM:
+        txyz_cm = np.zeros_like(tnxyz)
+        for t_i, xyz in enumerate(tnxyz):
+            txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
+        tnxyz -= txyz_cm
+    # tnxyz_wrapped = np.copy(tnxyz)
+    for t_i in range(1, tnxyz.shape[0]):
+        nxyz_diff = tnxyz[t_i] - tnxyz[t_i - 1]
+        tnxyz[t_i, nxyz_diff <= -L / 2] += L
+        tnxyz[t_i, nxyz_diff >= L / 2] -= L
+    #
+    # import matplotlib.pyplot as plt
+    # plt.figure()
+    # plt.scatter(tnxyz[:, :, 0], tnxyz[:, :, 1], c=range(tnxyz.shape[0]), cmap="rainbow", s=10)
+    # plt.scatter(tnxyz_wrapped[:, :, 0], tnxyz_wrapped[:, :, 1], c=range(tnxyz_wrapped.shape[0]), cmap="Greys", s=2, marker="s")
+    # plt.axhline(-L / 2, linestyle="dotted")
+    # plt.axhline(L / 2, linestyle="dotted")
+    # plt.axvline(-L / 2, linestyle="dotted")
+    # plt.axvline(L / 2, linestyle="dotted")
+    # plt.colorbar()
+    # plt.grid()
+    # plt.gca().set_aspect("equal")
+    # plt.show()
+
+    return np.mean(np.square(np.linalg.norm(tnxyz - tnxyz[0], axis=2)), axis=1)
+
+
+def calc_msd_fit(tmsd):
+    """
+    Fits a line through the mean squared displacement (MSD) given as numpy array with length t
+    """
     log_time = np.log10(np.arange(0, len(tmsd)))[1:]
     log_msd = np.log10(tmsd)[1:]
     popt, pcov = curve_fit(linear_fit, log_time, log_msd)
@@ -48,7 +74,7 @@ def calc_msd(txyz):
 
     tmsd_fit = np.zeros_like(tmsd)
     tmsd_fit[1:] = 10 ** (log_time * log_slope + log_offset)
-    return tmsd, tmsd_fit, log_slope
+    return tmsd_fit, log_slope
 
 
 def calc_r(xyz):
