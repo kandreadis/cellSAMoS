@@ -12,6 +12,7 @@ system_paths = {
     "conf_file": "/data1/andreadis/CellSim/samos_init/spheroid.conf",
     "conf_file_trackers": "/data1/andreadis/CellSim/samos_init/spheroid_trackers.conf",
     "conf_file_plane": "/data1/andreadis/CellSim/samos_init/plane.conf",
+    "conf_file_plane_abp": "/data1/andreadis/CellSim/samos_init/plane_ABP.conf",
     # Path of particle initialisation file ".../*.py"
     "init_particles_file": "/data1/andreadis/CellSim/samos_init/initialise_cells.py",
     # Path of terminal output logging file ".../*.log"

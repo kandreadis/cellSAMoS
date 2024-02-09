@@ -61,6 +61,7 @@ if __name__ == "__main__":
 
     # Enable tracker cells embedded within spheroid.
     parser.add_argument("-plane", "--plane", action="store_true", help="Confine cells to 2D plane?")
+    parser.add_argument("-plane_abp", "--plane_abp", action="store_true", help="Use Standard ABP model?")
     parser.add_argument("-L", "--L", type=float, default=10.0, help="Plane size L?")
     parser.add_argument("-phi", "--phi", type=float, default=1.0, help="Packing fraction phi?")
     parser.add_argument("-seed", "--seed", type=int, default=1, help="Random seed?")

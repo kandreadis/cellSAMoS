@@ -11,6 +11,8 @@ import matplotlib.cm as cm
 from paths_init import system_paths
 from scripts.communication_handler import print_log
 import textwrap
+import numpy as np
+import pandas as pd
 
 # If no dpi is specified by the user when running the visualisation scripts, this resolution variable overwrites.
 png_res_dpi = 300
@@ -66,40 +68,43 @@ def plot_scatterplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi
     plot_handler(session, dpi, f"scatter_{hue}_for_{y}_vs_{x}", show)
 
 
-def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, loglog=False, logx=False, logy=False):
+def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, loglog=False, logx=False, logy=False,
+                  extra_label="", equal_aspect=False, cmap="rainbow", log_offset=0):
     """
     Line plot visualisation
     """
-    plt.figure()
-    title = f"{y} vs. {x} {session}"
-    plt.title(textwrap.shorten(title, width=60))
+    plt.figure(figsize=(7, 5))
+    title = f"{y} vs. {x} {extra_label}"
+    plt.title(textwrap.shorten(title, width=50))
     if type(y) == list:
         for y_ in y:
-            if y_ == "msd":
-                sns.lineplot(data, x=x, y=y_, hue=None, style=style)
-            elif y_ == "msd fit":
-                sns.lineplot(data, x=x, y=y_, hue=hue, style=style, linestyle="--")#, palette=['r', 'g'])
-            else:
-                sns.lineplot(data, x=x, y=y_, hue=hue, style=style)
+            sns.lineplot(data, x=x, y=y_, hue=hue, style=style, legend="full", palette=cmap)
     else:
         if x != "time":
-            sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o")
+            sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o", legend="full", palette=cmap)
         else:
-            sns.lineplot(data, x=x, y=y, hue=hue, style=style)
-    if loglog:
-        plt.loglog()
-        plt.grid(which="both", axis="both")
-        plt.gca().set_aspect("equal")
+            sns.lineplot(data, x=x, y=y, hue=hue, style=style, legend="full", palette=cmap)
+    if y == "MSD":
+        t = np.unique(data["time"].values)
+        slope_1 = 10 ** log_offset * (t/10) ** 1
+        slope_2 = 10 ** log_offset * (t/10) ** 2
+        plt.plot(t, slope_1, linestyle="--", c="k")
+        plt.plot(t, slope_2, linestyle="--", c="grey")
+
     if logx:
         plt.xscale("log")
         plt.grid(which="both", axis="x")
-        # plt.gca().set_aspect("equal")
     if logy:
         plt.yscale("log")
         plt.grid(which="both", axis="y")
-        # plt.gca().set_aspect("equal")
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
-    plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}", show)
+    if loglog:
+        plt.loglog()
+        plt.grid(which="both", axis="both")
+    if equal_aspect:
+        plt.gca().set_aspect("equal")
+    sns.move_legend(plt.gca(), "upper left", bbox_to_anchor=(1, 1))
+    # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+    plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}{extra_label}", show)
 
 
 def plot_profile(session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=False):
@@ -133,6 +138,7 @@ def plot_heatmap(session, data, rows, columns, values, show=True, cmap="coolwarm
     ax.invert_yaxis()
     plot_handler(session, dpi, f"heat_{values}_for_{rows}_vs_{columns}", show)
 
+
 def plot_phase_diagram(session, data, rows, columns, values, show=True, cmap="coolwarm", dpi=png_res_dpi):
     """
     Phase diagram visualisation
@@ -144,7 +150,6 @@ def plot_phase_diagram(session, data, rows, columns, values, show=True, cmap="co
     plt.title(title)
     ax = sns.heatmap(avg_data, linewidth=1, cmap=cmap)
     ax.invert_yaxis()
-
 
     # sns.scatterplot(data=data, x=columns, y=rows, hue=values, palette=cmap, marker="s",legend=False,s=1000).set(title=title)
     # plt.yscale("log")

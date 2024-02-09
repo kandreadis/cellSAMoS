@@ -28,12 +28,13 @@ def run_analysis():
     }
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", type=str, default="20240205_L-100.0_phi-0.4",
-                        help="Result path to analyse")
+    default_folder = "20240208_ABP_no-poly_L-100.0_phi-1.0_re-1.0_Dr-0.1"
+    parser.add_argument("-p", "--p", type=str, default=[default_folder],
+                        help="Result path(s) to analyse", nargs='*')
     parser.add_argument("-dpi", "--dpi", type=int, default=300, help="Resolution dpi")
     args = parser.parse_args()
-    # TODO User arguments for -p should be looped through
-    folders_of_interests = [args.path]
+    folders_of_interests = args.p
+    print("Number of root folders =",len(folders_of_interests))
     for folder in folders_of_interests:
         # Analyse all folders within the root path given by the user.
         analyse_root_subfolders(vars_select, folder, args.dpi)

@@ -22,7 +22,10 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
     if params["add_tracker_cells"]:
         configuration_file = system_paths["conf_file_trackers"]
     elif params["plane"]:
-        configuration_file = system_paths["conf_file_plane"]
+        if params["plane_abp"]:
+            configuration_file = system_paths["conf_file_plane_abp"]
+        else:
+            configuration_file = system_paths["conf_file_plane"]
     else:
         configuration_file = system_paths["conf_file"]
     intialisation_file = system_paths["init_particles_file"]
