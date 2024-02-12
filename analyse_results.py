@@ -32,12 +32,21 @@ def run_analysis():
     parser.add_argument("-p", "--p", type=str, default=[default_folder],
                         help="Result path(s) to analyse", nargs='*')
     parser.add_argument("-dpi", "--dpi", type=int, default=300, help="Resolution dpi")
+    parser.add_argument("-dt", "--dt", type=float, default=0.01, help="Time step dt")
+    parser.add_argument("-freq", "--freq", type=float, default=1000, help="Sampling frequency")
+    parser.add_argument("-analyse", "--analyse", action="store_true", help="Run analysis (again)?")
+    parser.add_argument("-visualise", "--visualise", action="store_true", help="Visualise results?")
+    parser.add_argument("-show", "--show", action="store_true", help="Show results?")
+    parser.add_argument("-type_analysis", "--type_analysis", type=str, default="plane",
+                        help="Type of analysis? (tumoroid/plane")
     args = parser.parse_args()
     folders_of_interests = args.p
-    print("Number of root folders =",len(folders_of_interests))
+    print("Number of root folders =", len(folders_of_interests))
     for folder in folders_of_interests:
         # Analyse all folders within the root path given by the user.
-        analyse_root_subfolders(vars_select, folder, args.dpi)
+        analyse_root_subfolders(analyse=args.analyse, visualise=args.visualise, vars_select=vars_select,
+                                result_folder=folder, dpi=args.dpi,
+                                dt=args.dt, freq=args.freq, show=args.show, type_analysis=args.type_analysis)
         # Update result folder tree structure.
         visualise_result_tree(path=system_paths["output_figures_dir"], tree_type="analysis", show_subfolders=True)
     print_log("=== End ===")

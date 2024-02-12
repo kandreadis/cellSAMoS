@@ -12,7 +12,6 @@ from paths_init import system_paths
 from scripts.communication_handler import print_log
 import textwrap
 import numpy as np
-import pandas as pd
 
 # If no dpi is specified by the user when running the visualisation scripts, this resolution variable overwrites.
 png_res_dpi = 300
@@ -29,7 +28,7 @@ def create_png_path(session_label, plot_label):
     except:
         pass
     full_path = os.path.join(save_dir, f"{plot_label}.png")
-    print_log(f"Saving {full_path}")
+    print_log(f"-- Saving {plot_label}")
     return full_path
 
 
@@ -68,8 +67,32 @@ def plot_scatterplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi
     plot_handler(session, dpi, f"scatter_{hue}_for_{y}_vs_{x}", show)
 
 
+def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
+             extra_label="", cmap="rainbow", log_offsets=[1, 2], log_slopes=[1, 2], t_offset=10):
+    """
+    MSD visualisation
+    """
+    plt.figure(figsize=(7, 5))
+    title = f"{y} vs. {x} {extra_label}"
+    plt.title(textwrap.shorten(title, width=50))
+    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=5, marker="o", legend="full", palette=cmap)
+
+    lag_time = np.logspace(np.log10(np.min(data[x].values)), np.log10(np.max(data[x].values)))
+
+    for i, log_offset in enumerate(log_offsets):
+        plt.plot(lag_time, 10 ** log_offset * (lag_time / t_offset) ** log_slopes[i], linestyle="--",
+                 c=str(i / len(log_offsets)), label=f"slope {log_slopes[i]}")
+    plt.legend(title=hue)
+    plt.loglog()
+    plt.grid(which="both", axis="both")
+    sns.move_legend(plt.gca(), "upper left", bbox_to_anchor=(1, 1))
+    # plt.gca().set_aspect("equal")
+    # plt.gca().set_ylim(bottom=1e-2)
+    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}{extra_label}", show)
+
+
 def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, loglog=False, logx=False, logy=False,
-                  extra_label="", equal_aspect=False, cmap="rainbow", log_offset=0):
+                  extra_label="", equal_aspect=False, cmap="rainbow"):
     """
     Line plot visualisation
     """
@@ -81,15 +104,9 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
             sns.lineplot(data, x=x, y=y_, hue=hue, style=style, legend="full", palette=cmap)
     else:
         if x != "time":
-            sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o", legend="full", palette=cmap)
-        else:
             sns.lineplot(data, x=x, y=y, hue=hue, style=style, legend="full", palette=cmap)
-    if y == "MSD":
-        t = np.unique(data["time"].values)
-        slope_1 = 10 ** log_offset * (t/10) ** 1
-        slope_2 = 10 ** log_offset * (t/10) ** 2
-        plt.plot(t, slope_1, linestyle="--", c="k")
-        plt.plot(t, slope_2, linestyle="--", c="grey")
+        else:
+            sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o", legend="full", palette=cmap)
 
     if logx:
         plt.xscale("log")
@@ -103,7 +120,6 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
     if equal_aspect:
         plt.gca().set_aspect("equal")
     sns.move_legend(plt.gca(), "upper left", bbox_to_anchor=(1, 1))
-    # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
     plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}{extra_label}", show)
 
 
@@ -144,7 +160,6 @@ def plot_phase_diagram(session, data, rows, columns, values, show=True, cmap="co
     Phase diagram visualisation
     """
     title = f"{values} for {rows} vs. {columns} \n {session}"
-    print("Averaging plot over time...")
     avg_data = data.groupby([rows, columns])[values].mean().unstack()
     plt.figure(figsize=(5, 5))
     plt.title(title)
