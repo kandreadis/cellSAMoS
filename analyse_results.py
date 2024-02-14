@@ -37,6 +37,7 @@ def run_analysis():
     parser.add_argument("-analyse", "--analyse", action="store_true", help="Run analysis (again)?")
     parser.add_argument("-visualise", "--visualise", action="store_true", help="Visualise results?")
     parser.add_argument("-show", "--show", action="store_true", help="Show results?")
+    parser.add_argument("-debug", "--debug", action="store_true", help="Debug?")
     parser.add_argument("-type_analysis", "--type_analysis", type=str, default="plane",
                         help="Type of analysis? (tumoroid/plane")
     args = parser.parse_args()
@@ -45,7 +46,7 @@ def run_analysis():
     for folder in folders_of_interests:
         # Analyse all folders within the root path given by the user.
         analyse_root_subfolders(analyse=args.analyse, visualise=args.visualise, vars_select=vars_select,
-                                result_folder=folder, dpi=args.dpi,
+                                result_folder=folder, dpi=args.dpi, debug=args.debug,
                                 dt=args.dt, freq=args.freq, show=args.show, type_analysis=args.type_analysis)
         # Update result folder tree structure.
         visualise_result_tree(path=system_paths["output_figures_dir"], tree_type="analysis", show_subfolders=True)

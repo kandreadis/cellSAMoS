@@ -26,6 +26,11 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--num_time_steps", type=int, default=10000, help="Number of time steps")
     parser.add_argument("-N", "--cell_count", type=int, default=200, help="Number of initial cells")
 
+
+    parser.add_argument("-freq_dat", "--freq_dat", type=int, default=1000, help="Frequency of .dat savings?")
+    parser.add_argument("-freq_vtp", "--freq_vtp", type=int, default=1000, help="Frequency of .vtp savings?")
+    parser.add_argument("-dt", "--dt", type=float, default=0.01, help="Time step?")
+
     parser.add_argument("-v0", "--v0", type=float, default=0.1, help="External propulsion factor")
     parser.add_argument("-Dr", "--Dr", type=float, default=0.1, help="Rotational Diffusion?")
 

@@ -16,7 +16,7 @@ from scripts.communication_handler import print_log
 
 
 def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder, vars_select, result_folder, dpi, dt,
-                   freq):
+                   freq, debug):
     """
     For a folder within ../figures/root/session_folder, all sub-folders are analysed by investigating .dat files.
     """
@@ -81,8 +81,8 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
                         Dr = float(var.split("-")[1])
                     if "L" in var:
                         L = float(var.split("-")[1])
-                # if Dr != 1.0:
-                #     continue
+                # if Dr != 0.1: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #     continue  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 print("Dr:", Dr, "...")
                 xyz_plane = []
                 t = []
@@ -98,11 +98,12 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
                 t = (t - np.min(t)) * dt
                 txyz_plane = np.stack(xyz_plane, axis=0)
 
-                delta_t_plane, msd_plane = calc_msd(tnxyz=txyz_plane, L=L, t=t, tau=1 / Dr, freqdt=freq * dt,
-                                                    debug=False)
+                delta_t_plane, msd_plane, msderr_plane = calc_msd(tnxyz=txyz_plane, L=L, t=t, tau=1 / Dr, freqdt=freq * dt,
+                                                    debug=debug)
 
                 for delta_t_i in range(len(delta_t_plane)):
                     add_result(target=msd_dict, tag="MSD", item=msd_plane[delta_t_i])
+                    add_result(target=msd_dict, tag="MSD error", item=msderr_plane[delta_t_i])
                     add_result(target=msd_dict, tag="lag time", item=delta_t_plane[delta_t_i])
                     for item in vars_select.values():
                         add_var(target=msd_dict, var_list=var_list, var_short=item[0], var_long=item[1],
@@ -153,12 +154,16 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
 
                 if dat_iter == dat_iter_debug: break  # !!!!!!!!!!!!!!!
 
-            if idx > idx_iter_debug: break  # !!!!!!!!!!!!!!!!!!!!!!!!
+            if idx == idx_iter_debug: break  # !!!!!!!!!!!!!!!!!!!!!!!!
 
         # Process result dictionary
         result_df = pd.DataFrame.from_dict(analysis_result_dict, orient="columns")
         msd_df = pd.DataFrame.from_dict(msd_dict, orient="columns")
-        result_df["time"] = (result_df["time"] - min(result_df["time"].values)) * dt
+        try:
+            result_df["time"] = (result_df["time"] - min(result_df["time"].values)) * dt
+        except:
+            print("Folders present, but no .dat files at all... aborting!")
+            return
         try:
             os.makedirs(res_root_dir)
         except:
@@ -168,23 +173,28 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
         print(f"Saved analysis results to {res_root_dir}!")
 
     if visualise:
-         # replace visualisation logic with itertools for all parameter combinations
-
-        msd_df = pd.read_csv(os.path.join(res_root_dir, "dynamic_results.csv"))
-        result_df = pd.read_csv(os.path.join(res_root_dir, "static_results.csv"))
+        # replace visualisation logic with itertools for all parameter combinations
+        try:
+            msd_df = pd.read_csv(os.path.join(res_root_dir, "dynamic_results.csv"))
+            result_df = pd.read_csv(os.path.join(res_root_dir, "static_results.csv"))
+        except:
+            print("Not yet processed, run analysis first!")
+            return
         if type_analysis == "plane":
-            try:
-                # MSD vs. time grouped by Dr
-                for Drval in np.unique(result_df["rotational diffusion Dr"].values):
-                    msd_dr = msd_df.groupby("rotational diffusion Dr").get_group(Drval)
-                    plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD", hue="propulsion v0",
-                             show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-1, -1],
-                             t_offset=freq * dt)
-            except:
-                print("no Dr values in folder names")
-                plot_msd(session=session_label, data=msd_df, x="lag time", y="MSD", hue="propulsion v0",
-                         show=show, dpi=dpi, log_offsets=[1, 2], t_offset=freq * dt)
-
+            # MSD vs. time grouped by Dr
+            for Drval in np.unique(result_df["rotational diffusion Dr"].values):
+                msd_dr = msd_df.groupby("rotational diffusion Dr").get_group(Drval)
+                # msd_dr["MSD error"] *= 10
+                plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD", hue="propulsion v0",
+                         show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-1, -1],
+                         t_offset=freq * dt, error = "MSD error")
+                # plot_msd(session=session_label, data=msd_dr, x="lag time", y=, hue="propulsion v0",
+                #          show=show, dpi=dpi, extra_label=f"_Dr-{Drval} error", log_offsets=[-1, -1],
+                #          t_offset=freq * dt)
+                msd_dr["MSD(t) / t"] = msd_dr["MSD"] / msd_dr["lag time"]
+                plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD(t) / t", hue="propulsion v0",
+                         show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-2, -2],
+                         t_offset=freq * dt)
             # # General phase diagram
             # plot_phase_diagram(session=session_label, data=result_df, rows="rotational diffusion Dr",
             #                    columns="propulsion v0", values="average velocity", show=show, dpi=dpi)
@@ -264,7 +274,7 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
         #                  columns="cell division rate", values="radius of gyration", show=show, dpi=dpi)
 
 
-def analyse_root_subfolders(type_analysis, analyse, visualise, vars_select, result_folder, dpi, dt, freq, show):
+def analyse_root_subfolders(type_analysis, analyse, visualise, vars_select, result_folder, dpi, dt, freq, show, debug):
     """
     Finds all paths within a given root folder, and performs analysis for a dict of parameters and resolution dpi.
     """
@@ -275,4 +285,4 @@ def analyse_root_subfolders(type_analysis, analyse, visualise, vars_select, resu
         print_log(f"- {session_folder} -")
         analyse_folder(type_analysis=type_analysis, analyse=analyse, visualise=visualise, show=show, root=root,
                        session_folder=session_folder, vars_select=vars_select, result_folder=result_folder, dpi=dpi,
-                       dt=dt, freq=freq)
+                       dt=dt, freq=freq, debug=debug)

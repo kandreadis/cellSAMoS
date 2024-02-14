@@ -48,33 +48,54 @@ def calc_msd(tnxyz, L, t, tau, freqdt, substract_CM=False, debug=False):
         tnxyz[t_i, nxyz_diff <= -L / 2] += L
         tnxyz[t_i, nxyz_diff >= L / 2] -= L
 
-    # np.mean(np.square(np.linalg.norm(tnxyz - tnxyz[0], axis=2)), axis=1)
+    delta_t = np.arange(freqdt, np.max(t) + freqdt, freqdt)
 
-    delta_t = np.unique(np.round((np.logspace(0, round(np.log10(np.max(t))) - 1, endpoint=False))).astype(
-        int) * freqdt)
-
-    if freqdt > tau:
-        tau = freqdt
-    tau = 10**np.floor(np.log10(tau))
-    t0 = np.arange(0, np.max(t) - np.max(delta_t) + 1, tau)
     if debug:
         print("tau:", tau)
         print("freq*dt:", freqdt)
         print("t:", t)
         print("delta_t:", delta_t)
-        print("t_0:", t0)
     tmsd = []
+    tmsderr = []
     for delta_t_i, delta_t_val in enumerate(delta_t):
-        msd_t0 = np.empty_like(t0)
-        for t0_i, t0_val in enumerate(t0):
-            t0_idx = np.isclose(t, t0_val).nonzero()[0]
-            t0_delta_t_idx = np.isclose(t, t0_val + delta_t_val).nonzero()[0]
-            msd_t0[t0_i] = np.mean(np.square(np.linalg.norm(tnxyz[t0_delta_t_idx] - tnxyz[t0_idx], axis=2)), axis=1)
+        msd_delta_t = []
+        for t_val in t:
+            if t_val + delta_t_val <= np.max(t):
+                t_val_index = t_val / freqdt
+                delta_t_val_index = delta_t_val / freqdt
+                displacement = np.linalg.norm(tnxyz[int(t_val_index + delta_t_val_index)] - tnxyz[int(t_val_index)], axis=1)
+                msd_delta_t.append(np.mean(np.square(displacement)))
+        msd_delta_t = np.asarray(msd_delta_t)
+        tmsd.append(np.mean(msd_delta_t))
+        tmsderr.append(np.std(msd_delta_t) / np.sqrt(len(msd_delta_t)))
 
-        # print(delta_t_i, np.mean(msd_t0))
-        tmsd.append(np.mean(msd_t0))
-    tmsd = np.asarray(tmsd)
-    return delta_t, tmsd
+    if debug:
+        print("tmsd:", tmsd)
+
+    # delta_t = np.unique(np.round((np.logspace(0, round(np.log10(np.max(t))) - 1, endpoint=False))).astype(
+    #     int) * freqdt)
+    #
+    # if freqdt > tau:
+    #     tau = freqdt
+    # tau = 10 ** np.floor(np.log10(tau))
+    # t0 = np.arange(0, np.max(t) - np.max(delta_t) + 1, tau)
+    #
+    # tmsd = []
+    # for delta_t_i, delta_t_val in enumerate(delta_t):
+    #     msd_t0 = np.empty_like(t0)
+    #     for t0_i, t0_val in enumerate(t0):
+    #         t0_idx = np.isclose(t, t0_val).nonzero()[0]
+    #         t0_delta_t_idx = np.isclose(t, t0_val + delta_t_val).nonzero()[0]
+    #         msd_t0[t0_i] = np.mean(np.square(np.linalg.norm(tnxyz[t0_delta_t_idx] - tnxyz[t0_idx], axis=2)), axis=1)
+    #
+    #     # print(delta_t_i, np.mean(msd_t0))
+    #     tmsd.append(np.mean(msd_t0))
+    # tmsd = np.asarray(tmsd)
+
+    # tmsd = np.mean(np.square(np.linalg.norm(tnxyz - tnxyz[0], axis=2)), axis=1)
+    # delta_t = t
+
+    return delta_t, tmsd, tmsderr
 
 
 def calc_msd_fit(tmsd):

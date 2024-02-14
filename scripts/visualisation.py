@@ -27,6 +27,7 @@ def create_png_path(session_label, plot_label):
         os.makedirs(save_dir)
     except:
         pass
+    plot_label = plot_label.replace("/", "div")
     full_path = os.path.join(save_dir, f"{plot_label}.png")
     print_log(f"-- Saving {plot_label}")
     return full_path
@@ -68,15 +69,21 @@ def plot_scatterplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi
 
 
 def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
-             extra_label="", cmap="rainbow", log_offsets=[1, 2], log_slopes=[1, 2], t_offset=10):
+             extra_label="", cmap="tab20b", log_offsets=[1, 2], log_slopes=[1, 2], t_offset=10, error=None):
     """
     MSD visualisation
     """
-    plt.figure(figsize=(7, 5))
+    plt.figure(figsize=(10, 8))
     title = f"{y} vs. {x} {extra_label}"
     plt.title(textwrap.shorten(title, width=50))
-    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=5, marker="o", legend="full", palette=cmap)
-
+    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend="full", palette=cmap,
+                 markeredgecolor="none")
+    if error is not None:
+        # plt.errorbar(x=data[x],y=data[y],ls="none",yerr=data[error])
+        for hueval in np.unique(data[hue].values):
+            hueval_df = data[data[hue] == hueval]
+            plt.errorbar(hueval_df[x], hueval_df[y], color="k", linestyle="None", yerr=hueval_df[error], capsize=2,
+                         elinewidth=1, alpha=0.5)
     lag_time = np.logspace(np.log10(np.min(data[x].values)), np.log10(np.max(data[x].values)))
 
     for i, log_offset in enumerate(log_offsets):
