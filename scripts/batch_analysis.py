@@ -14,9 +14,11 @@ from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot,
 from scripts.analysis import calc_radius_gyration, calc_cell_count, calc_msd_fit, calc_r, calc_phi, calc_msd
 from scripts.communication_handler import print_log
 
+from multiprocessing import Process
 
-def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder, vars_select, result_folder, dpi, dt,
-                   freq, debug):
+
+def analyse_folder(session_folder, type_analysis, analyse, visualise, show, root, vars_select, result_folder, dpi,
+                   dt, freq, debug):
     """
     For a folder within ../figures/root/session_folder, all sub-folders are analysed by investigating .dat files.
     """
@@ -24,7 +26,7 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
     res_root_dir = os.path.join(analysis_output_dir, result_folder, session_folder)
     session_label = os.path.join(result_folder, session_folder)
     if analyse:
-        dat_iter_debug = None
+        dat_iter_debug = 100
         idx_iter_debug = None
 
         # Directory management
@@ -81,13 +83,15 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
                         Dr = float(var.split("-")[1])
                     if "L" in var:
                         L = float(var.split("-")[1])
-                # if Dr != 0.1: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+                # if Dr != 0.01: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 #     continue  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
                 print("Dr:", Dr, "...")
                 xyz_plane = []
                 t = []
                 for dat_iter, dat_dir in enumerate(dat_files):
-                    # print(dat_iter)
+                    if debug and (dat_iter % 100 == 0): print(f"  {len(dat_files) - dat_iter} .dat files left...")
                     dat_file_dir = os.path.join(result_folder_path, output_dir, dat_dir)
                     dat_content = read_dat(path=dat_file_dir)
                     xyz_plane.append(read_xyz(data=dat_content, group_index=1))
@@ -98,101 +102,110 @@ def analyse_folder(type_analysis, analyse, visualise, show, root, session_folder
                 t = (t - np.min(t)) * dt
                 txyz_plane = np.stack(xyz_plane, axis=0)
 
-                delta_t_plane, msd_plane, msderr_plane = calc_msd(tnxyz=txyz_plane, L=L, t=t, tau=1 / Dr, freqdt=freq * dt,
-                                                    debug=debug)
+                delta_t_plane, msd_plane, msderr_plane = calc_msd(tnxyz=txyz_plane, L=L, t=t, tau=1 / Dr,
+                                                                  freqdt=freq * dt,
+                                                                  debug=debug)
 
                 for delta_t_i in range(len(delta_t_plane)):
-                    add_result(target=msd_dict, tag="MSD", item=msd_plane[delta_t_i])
-                    add_result(target=msd_dict, tag="MSD error", item=msderr_plane[delta_t_i])
                     add_result(target=msd_dict, tag="lag time", item=delta_t_plane[delta_t_i])
+                    add_result(target=msd_dict, tag="MSD", item=msd_plane[delta_t_i])
+                    add_result(target=msd_dict, tag="MSD/t", item=msd_plane[delta_t_i] / delta_t_plane[delta_t_i])
+                    add_result(target=msd_dict, tag="MSD error", item=msderr_plane[delta_t_i])
+                    add_result(target=msd_dict, tag="freq", item=freq)
+                    add_result(target=msd_dict, tag="dt", item=dt)
                     for item in vars_select.values():
                         add_var(target=msd_dict, var_list=var_list, var_short=item[0], var_long=item[1],
                                 var_type=item[2])
 
             # print("Static analysis...")
             # Static measurements (Radial density profile, etc.)
-            for dat_iter, dat_dir in enumerate(dat_files):
-                # Performed for each .dat file
-                dat_file_dir = os.path.join(result_folder_path, output_dir, dat_dir)
-                dat_content = read_dat(path=dat_file_dir)
-                time_index = int(os.path.splitext(os.path.basename(dat_file_dir))[0].split("_")[-1])
-                xyz_cells = read_xyz(data=dat_content, group_index=1)
-
-                if type_analysis == "plane":
-                    vel_cells = read_vel(data=dat_content, group_index=1)
-                    avg_vel = np.average(np.sqrt(np.sum(np.square(vel_cells), axis=1)), axis=0)
-                else:
-                    radii_cells = read_radii(data=dat_content, group_index=1)
-                    cell_count = calc_cell_count(xyz_cells)
-                    r_cells = calc_r(xyz_cells)
-                    r_cells_binned, phi, dphidr, r_core = calc_phi(r_cells, radii_cells)
-                    r_gyration_cells = calc_radius_gyration(xyz=xyz_cells)
-
-                # Add found results
-                add_result(target=analysis_result_dict, tag="dir", item=output_dir)
-                add_result(target=analysis_result_dict, tag=".data dir", item=dat_dir)
-                add_result(target=analysis_result_dict, tag="time", item=time_index)
-
-                if type_analysis == "plane":
-                    add_result(target=analysis_result_dict, tag="average velocity", item=avg_vel)
-                else:
-                    add_result(target=analysis_result_dict, tag="cell count", item=cell_count)
-                    add_result(target=analysis_result_dict, tag="radius of gyration", item=r_gyration_cells)
-                    add_result(target=analysis_result_dict, tag="radius of core", item=r_core)
-                    add_result(target=analysis_result_dict, tag="phi cells", item=[phi])
-                    add_result(target=analysis_result_dict, tag="derivative of phi cells", item=[dphidr])
-                    add_result(target=analysis_result_dict, tag="r", item=[r_cells_binned])
-
-                if tracked:
-                    add_result(target=analysis_result_dict, tag="MSD trackers", item=msd_trackers[dat_iter])
-                    add_result(target=analysis_result_dict, tag="MSD trackers fit", item=msd_trackers_fit[dat_iter])
-                    add_result(target=analysis_result_dict, tag="MSD trackers slope", item=round(msd_trackers_slope, 2))
-
-                for item in vars_select.values():
-                    add_var(target=analysis_result_dict, var_list=var_list, var_short=item[0], var_long=item[1],
-                            var_type=item[2])
-
-                if dat_iter == dat_iter_debug: break  # !!!!!!!!!!!!!!!
+            # for dat_iter, dat_dir in enumerate(dat_files):
+            #     # Performed for each .dat file
+            #     dat_file_dir = os.path.join(result_folder_path, output_dir, dat_dir)
+            #     dat_content = read_dat(path=dat_file_dir)
+            #     time_index = int(os.path.splitext(os.path.basename(dat_file_dir))[0].split("_")[-1])
+            #     xyz_cells = read_xyz(data=dat_content, group_index=1)
+            #
+            #     if type_analysis == "plane":
+            #         vel_cells = read_vel(data=dat_content, group_index=1)
+            #         avg_vel = np.average(np.sqrt(np.sum(np.square(vel_cells), axis=1)), axis=0)
+            #     else:
+            #         radii_cells = read_radii(data=dat_content, group_index=1)
+            #         cell_count = calc_cell_count(xyz_cells)
+            #         r_cells = calc_r(xyz_cells)
+            #         r_cells_binned, phi, dphidr, r_core = calc_phi(r_cells, radii_cells)
+            #         r_gyration_cells = calc_radius_gyration(xyz=xyz_cells)
+            #
+            #     # Add found results
+            #     add_result(target=analysis_result_dict, tag="dir", item=output_dir)
+            #     add_result(target=analysis_result_dict, tag=".data dir", item=dat_dir)
+            #     add_result(target=analysis_result_dict, tag="time", item=time_index)
+            #
+            #     if type_analysis == "plane":
+            #         add_result(target=analysis_result_dict, tag="average velocity", item=avg_vel)
+            #     else:
+            #         add_result(target=analysis_result_dict, tag="cell count", item=cell_count)
+            #         add_result(target=analysis_result_dict, tag="radius of gyration", item=r_gyration_cells)
+            #         add_result(target=analysis_result_dict, tag="radius of core", item=r_core)
+            #         add_result(target=analysis_result_dict, tag="phi cells", item=[phi])
+            #         add_result(target=analysis_result_dict, tag="derivative of phi cells", item=[dphidr])
+            #         add_result(target=analysis_result_dict, tag="r", item=[r_cells_binned])
+            #
+            #     if tracked:
+            #         add_result(target=analysis_result_dict, tag="MSD trackers", item=msd_trackers[dat_iter])
+            #         add_result(target=analysis_result_dict, tag="MSD trackers fit", item=msd_trackers_fit[dat_iter])
+            #         add_result(target=analysis_result_dict, tag="MSD trackers slope", item=round(msd_trackers_slope, 2))
+            #
+            #     for item in vars_select.values():
+            #         add_var(target=analysis_result_dict, var_list=var_list, var_short=item[0], var_long=item[1],
+            #                 var_type=item[2])
+            #
+            #     if dat_iter == dat_iter_debug: break  # !!!!!!!!!!!!!!!
 
             if idx == idx_iter_debug: break  # !!!!!!!!!!!!!!!!!!!!!!!!
 
-        # Process result dictionary
-        result_df = pd.DataFrame.from_dict(analysis_result_dict, orient="columns")
-        msd_df = pd.DataFrame.from_dict(msd_dict, orient="columns")
-        try:
-            result_df["time"] = (result_df["time"] - min(result_df["time"].values)) * dt
-        except:
-            print("Folders present, but no .dat files at all... aborting!")
-            return
+        # # Process result dictionary
+        # result_df = pd.DataFrame.from_dict(analysis_result_dict, orient="columns")
+        #
+        # try:
+        #     result_df["time"] = (result_df["time"] - min(result_df["time"].values)) * dt
+        # except:
+        #     print("Folders present, but no .dat files at all... aborting!")
+        #     return
         try:
             os.makedirs(res_root_dir)
         except:
             pass
-        msd_df.to_csv(os.path.join(res_root_dir, "dynamic_results.csv"), index=False)
-        result_df.to_csv(os.path.join(res_root_dir, "static_results.csv"), index=False)
-        print(f"Saved analysis results to {res_root_dir}!")
+        # result_df.to_csv(os.path.join(res_root_dir, "static_results.csv"), index=False)
+
+        msd_df = pd.DataFrame.from_dict(msd_dict, orient="columns")
+        msd_df.to_csv(os.path.join(res_root_dir, "measurements.csv"), index=False)
+        print_log(f"Saved analysis results to {res_root_dir}!")
 
     if visualise:
         # replace visualisation logic with itertools for all parameter combinations
         try:
-            msd_df = pd.read_csv(os.path.join(res_root_dir, "dynamic_results.csv"))
-            result_df = pd.read_csv(os.path.join(res_root_dir, "static_results.csv"))
+            msd_df = pd.read_csv(os.path.join(res_root_dir, "measurements.csv"))
         except:
-            print("Not yet processed, run analysis first!")
+            print("Not yet processed, run -analysis first!")
             return
+        # try:
+        # result_df = pd.read_csv(os.path.join(res_root_dir, "static_results.csv"))
+        # except:
+        # print("Not yet processed static results (radial density), run -analyse first!")
+        # return
         if type_analysis == "plane":
             # MSD vs. time grouped by Dr
-            for Drval in np.unique(result_df["rotational diffusion Dr"].values):
+            for Drval in np.unique(msd_df["rotational diffusion Dr"].values):
                 msd_dr = msd_df.groupby("rotational diffusion Dr").get_group(Drval)
                 # msd_dr["MSD error"] *= 10
                 plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD", hue="propulsion v0",
-                         show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-1, -1],
-                         t_offset=freq * dt, error = "MSD error")
+                         show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-3, -5],
+                         t_offset=freq * dt, error="MSD error")
                 # plot_msd(session=session_label, data=msd_dr, x="lag time", y=, hue="propulsion v0",
                 #          show=show, dpi=dpi, extra_label=f"_Dr-{Drval} error", log_offsets=[-1, -1],
                 #          t_offset=freq * dt)
-                msd_dr["MSD(t) / t"] = msd_dr["MSD"] / msd_dr["lag time"]
-                plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD(t) / t", hue="propulsion v0",
+                plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD/t", hue="propulsion v0",
                          show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-2, -2],
                          t_offset=freq * dt)
             # # General phase diagram
@@ -278,11 +291,28 @@ def analyse_root_subfolders(type_analysis, analyse, visualise, vars_select, resu
     """
     Finds all paths within a given root folder, and performs analysis for a dict of parameters and resolution dpi.
     """
-    root = os.path.join(system_paths["output_samos_dir"], result_folder)
+    if not analyse and visualise:
+        analysis_output_dir = system_paths["output_analysis_dir"]
+        root = os.path.join(analysis_output_dir, result_folder)
+    else:
+        root = os.path.join(system_paths["output_samos_dir"], result_folder)
+
     print_log(f"|- Searching {root} -|")
     session_root = os.listdir(root)
+    processes = []
     for session_folder in session_root:
         print_log(f"- {session_folder} -")
-        analyse_folder(type_analysis=type_analysis, analyse=analyse, visualise=visualise, show=show, root=root,
-                       session_folder=session_folder, vars_select=vars_select, result_folder=result_folder, dpi=dpi,
-                       dt=dt, freq=freq, debug=debug)
+        session_vars = session_folder.split("_")
+        for i in session_vars:
+            if "freq" in i:
+                freq_override = float(session_vars[-1].split("-")[-1])
+                freq = freq_override
+        # analyse_folder(session_folder=session_folder, type_analysis=type_analysis, analyse=analyse, visualise=visualise, show=show, root=root,
+        #                vars_select=vars_select, result_folder=result_folder, dpi=dpi,
+        #                dt=dt, freq=freq, debug=debug)
+        p = Process(target=analyse_folder, args=(session_folder, type_analysis, analyse, visualise, show, root,
+                                                 vars_select, result_folder, dpi, dt, freq, debug))
+        p.start()
+        processes.append(p)
+    for p in processes:
+        p.join()

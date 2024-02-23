@@ -76,7 +76,7 @@ def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
     plt.figure(figsize=(10, 8))
     title = f"{y} vs. {x} {extra_label}"
     plt.title(textwrap.shorten(title, width=50))
-    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend="full", palette=cmap,
+    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend="auto", palette=cmap,
                  markeredgecolor="none")
     if error is not None:
         # plt.errorbar(x=data[x],y=data[y],ls="none",yerr=data[error])
@@ -84,7 +84,7 @@ def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
             hueval_df = data[data[hue] == hueval]
             plt.errorbar(hueval_df[x], hueval_df[y], color="k", linestyle="None", yerr=hueval_df[error], capsize=2,
                          elinewidth=1, alpha=0.5)
-    lag_time = np.logspace(np.log10(np.min(data[x].values)), np.log10(np.max(data[x].values)))
+    lag_time = np.logspace(np.log10(min(data[x])), np.log10(max(data[x])))
 
     for i, log_offset in enumerate(log_offsets):
         plt.plot(lag_time, 10 ** log_offset * (lag_time / t_offset) ** log_slopes[i], linestyle="--",

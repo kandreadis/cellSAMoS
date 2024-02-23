@@ -6,6 +6,15 @@ Author: Konstantinos Andreadis
 
 import pandas as pd
 import numpy as np
+import os
+
+def combine_datasets(input_dir_lists, output_dir):
+    """
+    Combine panda dataframes into output dataframe.
+    """
+    pd_input = [pd.read_csv(os.path.join(input_dir, "dynamic_results.csv")) for input_dir in input_dir_lists]
+    pd.concat(pd_input).to_csv(os.path.join(output_dir, "dynamic_results.csv"))
+    print(f"Combined {len(input_dir_lists)} dataframes into one in {output_dir} !")
 
 
 def read_dat(path):
@@ -20,7 +29,6 @@ def read_dat(path):
     data.rename(columns={temp[len(temp) - 1]: 'none'}, inplace=True)
     data.rename(columns=colshift, inplace=True, errors="raise")
     return data
-
 
 def read_xyz(data, group_index):
     """

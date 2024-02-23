@@ -7,7 +7,6 @@ from scripts.communication_handler import print_log, visualise_result_tree
 from scripts.batch_analysis import analyse_root_subfolders
 import argparse
 
-
 def run_analysis():
     """
     For a set of variables all samos result folder(s) are analysed in batch.
@@ -19,16 +18,16 @@ def run_analysis():
         1: ["t", "max time steps", int],
         2: ["div", "cell division rate", float],
         3: ["v0", "propulsion v0", float],
+        9: ["Dr", "rotational diffusion Dr", float],
+        8: ["phi", "packing fraction phi", float],
+        7: ["L", "box dimension L", float],
         4: ["re", "potential re factor", float],
         5: ["poly", "cell radius polydispersity", float],
         6: ["Ntrack", "track cell count", int],
-        7: ["L", "box dimension L", float],
-        8: ["phi", "packing fraction phi", float],
-        9: ["Dr", "rotational diffusion Dr", float],
     }
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
-    default_folder = "20240208_ABP_no-poly_L-100.0_phi-1.0_re-1.0_Dr-0.1"
+    default_folder = "20240223_L-100.0_phi-1.0_v0-Dr_andreadis"
     parser.add_argument("-p", "--p", type=str, default=[default_folder],
                         help="Result path(s) to analyse", nargs='*')
     parser.add_argument("-dpi", "--dpi", type=int, default=300, help="Resolution dpi")

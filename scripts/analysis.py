@@ -7,8 +7,8 @@ Author: Konstantinos Andreadis
 import numpy as np
 from scipy.optimize import curve_fit
 
-
 # from numba import njit
+
 
 def calc_radius_gyration(xyz):
     """
@@ -31,24 +31,45 @@ def linear_fit(x, a, b):
     return a * x + b
 
 
-# @njit
+def cm_removal(tnxyz):
+    """
+    Removes the center of mass for a set of xyz coordinates given as numpy matrix txNx3
+    """
+    tr = np.sqrt(np.sum(np.square(tnxyz), axis=2))
+    txyz_cm = np.zeros_like(tnxyz)
+    for t_i, xyz in enumerate(tnxyz):
+        txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
+    tnxyz -= txyz_cm
+    return tnxyz
+
+
+def periodic_unwrap(tnxyz, L):
+    """
+    According to box size and periodicity (L), this function "unwraps" a set of xyz coordinates
+    given as numpy matrix txNx3
+    """
+    for t_i in range(1, tnxyz.shape[0]):
+        nxyz_diff = tnxyz[t_i] - tnxyz[t_i - 1]
+        tnxyz[t_i, nxyz_diff <= -L / 2] += L
+        tnxyz[t_i, nxyz_diff >= L / 2] -= L
+    return tnxyz
+
+
 def calc_msd(tnxyz, L, t, tau, freqdt, substract_CM=False, debug=False):
     """
     Calculates the mean squared displacement (MSD) as a function of time for a set of xyz
     coordinates given as numpy matrix txNx3
     """
     if substract_CM:
-        tr = np.sqrt(np.sum(np.square(tnxyz), axis=2))
-        txyz_cm = np.zeros_like(tnxyz)
-        for t_i, xyz in enumerate(tnxyz):
-            txyz_cm[t_i] = np.average(xyz, axis=0, weights=tr[t_i])
-        tnxyz -= txyz_cm
-    for t_i in range(1, tnxyz.shape[0]):
-        nxyz_diff = tnxyz[t_i] - tnxyz[t_i - 1]
-        tnxyz[t_i, nxyz_diff <= -L / 2] += L
-        tnxyz[t_i, nxyz_diff >= L / 2] -= L
+        tnxyz = cm_removal(tnxyz)
+    tnxyz = periodic_unwrap(tnxyz=tnxyz, L=L)
 
-    delta_t = np.arange(freqdt, np.max(t) + freqdt, freqdt)
+    if tau > freqdt > 1:
+        delta_t_sep = tau
+    else:
+        delta_t_sep = freqdt
+
+    delta_t = np.arange(freqdt, np.max(t), delta_t_sep)
 
     if debug:
         print("tau:", tau)
@@ -58,12 +79,15 @@ def calc_msd(tnxyz, L, t, tau, freqdt, substract_CM=False, debug=False):
     tmsd = []
     tmsderr = []
     for delta_t_i, delta_t_val in enumerate(delta_t):
+        if debug:
+            print("Delta t:", delta_t_val)
         msd_delta_t = []
         for t_val in t:
             if t_val + delta_t_val <= np.max(t):
                 t_val_index = t_val / freqdt
                 delta_t_val_index = delta_t_val / freqdt
-                displacement = np.linalg.norm(tnxyz[int(t_val_index + delta_t_val_index)] - tnxyz[int(t_val_index)], axis=1)
+                displacement = np.linalg.norm(tnxyz[int(t_val_index + delta_t_val_index)] - tnxyz[int(t_val_index)],
+                                              axis=1)
                 msd_delta_t.append(np.mean(np.square(displacement)))
         msd_delta_t = np.asarray(msd_delta_t)
         tmsd.append(np.mean(msd_delta_t))

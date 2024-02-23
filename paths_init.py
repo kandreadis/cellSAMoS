@@ -23,8 +23,8 @@ system_paths = {
     "output_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/samos-output_dir-tree.log",
     "analysis_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/analysis-output_dir-tree.log",
     # Path where analysis results should be saved ".../figures"
-    "output_analysis_dir": "/data1/andreadis/analysis_results/analysis",
-    "output_figures_dir": "/data1/andreadis/Dropbox/FIGURES",
+    "output_analysis_dir": "/data1/andreadis/analysis_results/processed_data",
+    "output_figures_dir": "/data1/andreadis/analysis_results/figures",
     # Path to listen to for new .sh bash commands ".../PORT"
     "listen_dir":"/data1/andreadis/Dropbox/CELLSIM_PORT",
     # Path where all completed tasks should be moved to ".../completed"
