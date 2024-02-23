@@ -7,6 +7,7 @@ Author: Konstantinos Andreadis
 import numpy as np
 from scipy.optimize import curve_fit
 
+
 # from numba import njit
 
 

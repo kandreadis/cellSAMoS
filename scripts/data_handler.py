@@ -8,13 +8,14 @@ import pandas as pd
 import numpy as np
 import os
 
-def combine_datasets(input_dir_lists, output_dir):
+
+def combine_datasets(input_dir, output_dir):
     """
     Combine panda dataframes into output dataframe.
     """
-    pd_input = [pd.read_csv(os.path.join(input_dir, "dynamic_results.csv")) for input_dir in input_dir_lists]
-    pd.concat(pd_input).to_csv(os.path.join(output_dir, "dynamic_results.csv"))
-    print(f"Combined {len(input_dir_lists)} dataframes into one in {output_dir} !")
+    pd_input = [pd.read_csv(os.path.join(input_dir, path, "measurements.csv")) for path in os.listdir(input_dir)]
+    pd.concat(pd_input).to_csv(os.path.join(output_dir, "measurements.csv"))
+    print(f"Combined {len(input_dir)} dataframes into one in {output_dir} !")
 
 
 def read_dat(path):
@@ -30,6 +31,7 @@ def read_dat(path):
     data.rename(columns=colshift, inplace=True, errors="raise")
     return data
 
+
 def read_xyz(data, group_index):
     """
     For a given cell group, retrieve all xyz cell positions.
@@ -40,6 +42,7 @@ def read_xyz(data, group_index):
     zcoords = data["z"].to_numpy()
     return np.column_stack([xcoords, ycoords, zcoords])
 
+
 def read_vel(data, group_index):
     """
     For a given cell group, retrieve all xyz velocity components.
@@ -49,6 +52,7 @@ def read_vel(data, group_index):
     vely = data["vy"].to_numpy()
     velz = data["vz"].to_numpy()
     return np.column_stack([velx, vely, velz])
+
 
 def read_radii(data, group_index):
     """

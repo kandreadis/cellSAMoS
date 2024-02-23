@@ -76,7 +76,7 @@ def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
     plt.figure(figsize=(10, 8))
     title = f"{y} vs. {x} {extra_label}"
     plt.title(textwrap.shorten(title, width=50))
-    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend="auto", palette=cmap,
+    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend=False, palette=cmap,
                  markeredgecolor="none")
     if error is not None:
         # plt.errorbar(x=data[x],y=data[y],ls="none",yerr=data[error])

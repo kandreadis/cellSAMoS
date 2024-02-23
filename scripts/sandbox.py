@@ -5,15 +5,13 @@ Author: Konstantinos Andreadis
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from scripts import data_handler
-input = ["/data1/andreadis/analysis_results/analysis/20240214_L-100.0_phi-1.0_re-1.15_freq-10/v0_log_0.01-0.2_#20_vs_Dr_log_0.01-1.0_#3",
-"/data1/andreadis/analysis_results/analysis/20240214_L-100.0_phi-1.0_re-1.15_freq-10_Dr-0.01_lowv/v0_log_0.001-0.01_#19_vs_Dr_log_0.01-0.01_#1",
-"/data1/andreadis/analysis_results/analysis/20240214_L-100.0_phi-1.0_re-1.15_freq-1000_Dr-0.01/v0_log_0.01-0.2_#20_vs_Dr_log_0.01-0.01_#1",
-"/data1/andreadis/analysis_results/analysis/20240214_L-100.0_phi-1.0_re-1.15_freq-1000_Dr-0.01_lowv/v0_log_0.001-0.01_#19_vs_Dr_log_0.01-0.01_#1"]
+from data_handler import combine_datasets
 
-output = "/data1/andreadis/analysis_results/analysis/20240219_merged/Dr-0.01"
+input = "/data1/andreadis/analysis_results/processed_data/20240223_L-100.0_phi-1.0_v0-Dr_andreadis"
 
-data_handler.combine_datasets(input,output)
+output = "/data1/andreadis/analysis_results/processed_data/andreadis_merged/merged"
+
+combine_datasets(input, output)
 
 # # from samos_init import initialise_cells
 # # collective = initialise_cells.Plane(L=100, phi=1.0, cell_radius=1.0, poly=0.3).cells

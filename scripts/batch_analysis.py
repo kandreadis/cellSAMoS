@@ -26,7 +26,7 @@ def analyse_folder(session_folder, type_analysis, analyse, visualise, show, root
     res_root_dir = os.path.join(analysis_output_dir, result_folder, session_folder)
     session_label = os.path.join(result_folder, session_folder)
     if analyse:
-        dat_iter_debug = 100
+        dat_iter_debug = None
         idx_iter_debug = None
 
         # Directory management
