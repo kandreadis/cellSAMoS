@@ -160,9 +160,12 @@ def calc_phi(r, radius):
     in_shell = (r_bins - dr / 2 <= r[:, np.newaxis]) & (r[:, np.newaxis] <= r_bins + dr / 2)
     particles_volume = np.einsum("ij, i->j", in_shell, (4 / 3) * np.pi * radius ** 3)
     phi = particles_volume / shell_volume
-    dphidr = np.gradient(phi)
-    r_core = np.argmin(dphidr)
-    return r_bins, phi, dphidr, r_core
+    phi /= np.max(phi)
+    try:
+        r_core = min(r_bins[phi <= 1 / np.e])
+    except:
+        r_core = None
+    return r_bins, phi, r_core
 
 
 def calc_radius_fit(r):

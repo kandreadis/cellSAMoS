@@ -76,7 +76,7 @@ def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
     plt.figure(figsize=(10, 8))
     title = f"{y} vs. {x} {extra_label}"
     plt.title(textwrap.shorten(title, width=50))
-    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend=False, palette=cmap,
+    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend="brief", palette=cmap,
                  markeredgecolor="none")
     if error is not None:
         # plt.errorbar(x=data[x],y=data[y],ls="none",yerr=data[error])
@@ -130,24 +130,25 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
     plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}{extra_label}", show)
 
 
-def plot_profile(session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=False):
+def plot_profile(varlabels, session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=False, extra_label=""):
     """
     Profile plot visualisation
     """
-    plt.figure()
-    title = f"{y} vs. {x} [c={hue} \n {session}]"
-    plt.title(textwrap.shorten(title, width=60))
-    t_range = data[hue].to_numpy()
-    for t_i, t in enumerate(t_range):
-        color_float = (t_i + 1) / len(t_range)
-        plt.plot(data[x][t_i][0], data[y][t_i][0], label=t, c=cm.rainbow(color_float), marker="o", markersize=2,
-                 alpha=0.8)
+    plt.figure(figsize=(6, 5))
+    title = f"{y} vs. {x} [c={hue}] \n {extra_label} \n {session[:len(session) // 2]}..."
+    plt.title(title)
+    for hueval in np.unique(data[hue].values):
+        data_time = data.groupby(hue).get_group(hueval)
+        color_float = hueval / max(data[hue].values)
+        plt.plot(data_time[x].values[0], data_time[y].values[0], label=hueval, c=cm.rainbow(color_float), marker="o",
+                 markersize=2, alpha=0.8)
+    # plt.legend(title=hue)
+    plt.axhline(1 / np.e, linestyle="--", label="1/e", c="k")
     plt.xlabel(x)
     plt.ylabel(y)
-    # plt.legend()
     if loglog:
         plt.loglog()
-    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}", show)
+    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}{extra_label}", show)
 
 
 def plot_heatmap(session, data, rows, columns, values, show=True, cmap="coolwarm", dpi=png_res_dpi):

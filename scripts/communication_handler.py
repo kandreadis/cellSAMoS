@@ -9,6 +9,15 @@ import os, datetime
 from paths_init import system_paths
 
 
+def create_samos_folder_name(folder_values, global_parameters):
+    param_pair_label = ""
+    for i, varname in enumerate(folder_values):
+        param_pair_label += f"{varname}-{global_parameters[varname]}"
+        if i < len(folder_values) - 1:
+            param_pair_label += "_"
+    return param_pair_label
+
+
 def print_log(message):
     """
     Print and log a string message at the same time.
@@ -33,6 +42,7 @@ def print_dirstatus(message, tree_type):
         for msg in message:
             f.write(msg + "\n")
         f.close()
+
 
 def print_portstatus(message):
     """

@@ -13,8 +13,10 @@ system_paths = {
     "conf_file_trackers": "/data1/andreadis/CellSim/samos_init/spheroid_trackers.conf",
     "conf_file_plane": "/data1/andreadis/CellSim/samos_init/plane.conf",
     "conf_file_plane_abp": "/data1/andreadis/CellSim/samos_init/plane_ABP.conf",
+    "conf_file_tumoroid_ecm": "/data1/andreadis/CellSim/samos_init/tumoroid_ECM.conf",
     # Path of particle initialisation file ".../*.py"
     "init_particles_file": "/data1/andreadis/CellSim/samos_init/initialise_cells.py",
+    "init_tumoroid_ecm_file": "/data1/andreadis/CellSim/samos_init/initialise_tumoroid_ECM.py",
     # Path of terminal output logging file ".../*.log"
     "log_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/cellsim.log",
     # Path of port status logging file ".../*.log"

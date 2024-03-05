@@ -6,7 +6,17 @@ Author: Konstantinos Andreadis
 
 import pandas as pd
 import numpy as np
-import os
+import os, json
+from scripts.communication_handler import print_log
+import ast
+
+
+def save_dict(dict, path):
+    """
+    Save Python dictionary as json file
+    """
+    with open(os.path.join(path, "params.json"), "w") as jsonfile:
+        json.dump(dict, jsonfile, indent=4)
 
 
 def combine_datasets(input_dir, output_dir):
@@ -73,14 +83,31 @@ def add_result(target, tag, item):
         target[tag].append(item)
 
 
-def add_var(target, var_list, var_short, var_long, var_type=float):
+def add_vars(target, var_list, vars_select):
     """
     Extract and format parameter values, and save them to a result dictionary.
     """
-    for var in var_list:
-        if var_short == var.split("-")[0]:
-            if var_type == int:
-                var_val = int(float(var.split("-")[-1]))
-            else:
-                var_val = float(var.split("-")[-1])
-            add_result(target=target, tag=var_long, item=var_val)
+    for varsel in vars_select:
+        for varavail in var_list:
+            if varsel == varavail.split("-")[0]:
+                if vars_select[varsel][1] == int:
+                    var_val = int(float(varavail.split("-")[-1]))
+                else:
+                    var_val = float(varavail.split("-")[-1])
+                add_result(target=target, tag=varsel, item=var_val)
+
+
+def import_resultdf(res_root_dir):
+    try:
+        result_df = pd.read_csv(os.path.join(res_root_dir, "measurements.csv"))
+    except:
+        print_log("Not yet processed, run -analysis first!")
+        return
+
+    for key in result_df.keys():
+        try:
+            if result_df[key][0][0] == "[":
+                result_df[key] = result_df[key].apply(ast.literal_eval)
+        except:
+            pass
+    return result_df
