@@ -11,7 +11,8 @@ import samos_init.initialise_tumoroid_ECM as init_tumoroid_ecm
 from paths_init import system_paths
 from scripts.communication_handler import print_log, visualise_result_tree, create_samos_folder_name
 from scripts.data_handler import save_dict
-from multiprocessing import Pool
+import multiprocessing
+import copy
 
 
 def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
@@ -70,7 +71,6 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
         conf_file.seek(0)
         conf_file.write(configuration)
         conf_file.truncate()
-
     # Executes Python script to initialise particles and save to the result folder
     if params["plane"]:
         collective = init_cells.Plane(L=params["L"], phi=params["phi"], cell_radius=params["cell_radius"],
@@ -105,27 +105,27 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
 
 
 def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sweep, parameter_3D_sweep,
-              enable_samos_exec, group_folder,
-              debug, digit_precision, num_cores):
+              enable_samos_exec, group_folder, debug, digit_precision, num_cores):
     """
     This multi-dimensional sweeping handler operates in 3 sweep_types: Single value, 1 parameter range and 2 parameter
     ranges. In the first case, the global_parameters are used.
     """
     processes = []
-    pool = Pool(processes=num_cores)
+    pool = multiprocessing.Pool(processes=num_cores)
     folder_values = ["Nframes", "Ncell", "L", "phiecm", "kce", "divcell", "v0", "divasymprob"]
     if sweep_type == 0:
         print_log("!! Running single simulation without sweep")
-        param_pair_label = create_samos_folder_name(folder_values=folder_values, global_parameters=global_parameters)
-        if global_parameters["track"]:
-            param_pair_label += "_track-{}".format(global_parameters["Ntrack"])
+        params_dict = copy.deepcopy(global_parameters)
+        param_pair_label = create_samos_folder_name(folder_values=folder_values, global_parameters=params_dict)
+        if params_dict["track"]:
+            param_pair_label += "_track-{}".format(params_dict["Ntrack"])
 
         session_label = param_pair_label
         if debug:
             session_label = "debug"
             param_pair_label = "debug"
         processes.append(pool.apply_async(func=run_simulation, args=(
-        global_parameters, group_folder, session_label, param_pair_label, enable_samos_exec)))
+        params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     if sweep_type == 1:
         if parameter_1D_sweep["v1type"] == "custom":
@@ -148,11 +148,11 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
             status = "{} {}".format(parameter_1D_sweep["v1"], var1)
             progress_msg = f"[{progress}] --- {status} ---"
             print_log(progress_msg)
-            global_parameters[parameter_1D_sweep["v1"]] = var1
-            param_pair_label = create_samos_folder_name(folder_values=folder_values,
-                                                        global_parameters=global_parameters)
+            params_dict = copy.deepcopy(global_parameters)
+            params_dict[parameter_3D_sweep["v1"]] = var1
+            param_pair_label = create_samos_folder_name(folder_values=folder_values, global_parameters=params_dict)
             processes.append(pool.apply_async(func=run_simulation, args=(
-            global_parameters, group_folder, session_label, param_pair_label, enable_samos_exec)))
+            params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     if sweep_type == 2:
         if parameter_2D_sweep["v1type"] == "custom":
@@ -195,10 +195,12 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                 status = "{} {} {} {}".format(parameter_2D_sweep["v1"], var1, parameter_2D_sweep["v2"], var2)
                 progress_msg = f"[{progress}] --- {status} ---"
                 print_log(progress_msg)
-                global_parameters[parameter_2D_sweep["v1"]] = var1
-                global_parameters[parameter_2D_sweep["v2"]] = var2
+                params_dict = copy.deepcopy(global_parameters)
+                params_dict[parameter_3D_sweep["v1"]] = var1
+                params_dict[parameter_3D_sweep["v2"]] = var2
+                param_pair_label = create_samos_folder_name(folder_values=folder_values, global_parameters=params_dict)
                 processes.append(pool.apply_async(func=run_simulation, args=(
-                global_parameters, group_folder, session_label, param_pair_label, enable_samos_exec)))
+                params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     if sweep_type == 3:
         if parameter_3D_sweep["v1type"] == "custom":
@@ -260,13 +262,14 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                                                         parameter_3D_sweep["v3"], var3)
                     progress_msg = f"[{progress}] --- {status} ---"
                     print_log(progress_msg)
-                    global_parameters[parameter_3D_sweep["v1"]] = var1
-                    global_parameters[parameter_3D_sweep["v2"]] = var2
-                    global_parameters[parameter_3D_sweep["v3"]] = var3
+                    params_dict = copy.deepcopy(global_parameters)
+                    params_dict[parameter_3D_sweep["v1"]] = var1
+                    params_dict[parameter_3D_sweep["v2"]] = var2
+                    params_dict[parameter_3D_sweep["v3"]] = var3
                     param_pair_label = create_samos_folder_name(folder_values=folder_values,
-                                                                global_parameters=global_parameters)
+                                                                global_parameters=params_dict)
                     processes.append(pool.apply_async(func=run_simulation, args=(
-                    global_parameters, group_folder, session_label, param_pair_label, enable_samos_exec)))
+                    params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     for p in processes:
         p.get()

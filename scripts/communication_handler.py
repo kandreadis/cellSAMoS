@@ -24,9 +24,12 @@ def print_log(message):
     """
     log = f"[{datetime.datetime.now().strftime('%Y/%m/%d %H:%M')}] {message}\n"
     progress_msg_file = os.path.join(system_paths["log_file"])
-    with open(progress_msg_file, "a") as f:
-        f.write(log)
-        f.close()
+    try:
+        with open(progress_msg_file, "a") as f:
+            f.write(log)
+            f.close()
+    except:
+        print("Could not log progress...")
     print(message)
 
 
@@ -34,14 +37,17 @@ def print_dirstatus(message, tree_type):
     """
     Save last known folder structure to a file.
     """
-    if tree_type == "output":
-        dirstatus_file = os.path.join(system_paths["output_dirstatus_file"])
-    else:
-        dirstatus_file = os.path.join(system_paths["analysis_dirstatus_file"])
-    with open(dirstatus_file, "w") as f:
-        for msg in message:
-            f.write(msg + "\n")
-        f.close()
+    try:
+        if tree_type == "output":
+            dirstatus_file = os.path.join(system_paths["output_dirstatus_file"])
+        else:
+            dirstatus_file = os.path.join(system_paths["analysis_dirstatus_file"])
+        with open(dirstatus_file, "w") as f:
+            for msg in message:
+                f.write(msg + "\n")
+            f.close()
+    except:
+        print("Could not log dirstatus...")
 
 
 def print_portstatus(message):
@@ -50,9 +56,12 @@ def print_portstatus(message):
     """
     log = f"[{datetime.datetime.now().strftime('%Y/%m/%d %H:%M')}] {message}\n"
     status_msg_file = os.path.join(system_paths["port_status_file"])
-    with open(status_msg_file, "a") as f:
-        f.write(log)
-        f.close()
+    try:
+        with open(status_msg_file, "a") as f:
+            f.write(log)
+            f.close()
+    except:
+        print("Could not log portstatus...")
     print(message)
 
 

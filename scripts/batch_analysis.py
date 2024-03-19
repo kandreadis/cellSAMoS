@@ -11,7 +11,7 @@ from paths_init import system_paths
 from scripts.data_handler import read_dat, read_xyz, add_result, add_vars, read_radii, read_vel, import_resultdf
 from scripts.visualisation import plot_heatmap, plot_scatterplot, plot_lineplot, plot_boxplot, plot_profile, \
     plot_phase_diagram, plot_msd
-from scripts.analysis import calc_radius_gyration, calc_cell_count, calc_msd_fit, calc_r, calc_phi, calc_msd
+from scripts.analysis import calc_radius_gyration, calc_msd_fit, calc_r, calc_phi, calc_msd
 from scripts.communication_handler import print_log, visualise_result_tree
 from multiprocessing import Pool
 
@@ -21,6 +21,7 @@ def analyse_folder(session_folder, type_analysis, root, vars_select, result_fold
     """
     For a folder within ../figures/root/session_folder, all sub-folders are analysed by investigating .dat files.
     """
+    print_log(f"Looking for folder vars {list(vars_select.keys())}...")
     analysis_output_dir = system_paths["output_analysis_dir"]
     res_root_dir = os.path.join(analysis_output_dir, result_folder, session_folder)
 
@@ -75,7 +76,7 @@ def analyse_folder(session_folder, type_analysis, root, vars_select, result_fold
         #     msd_trackers_fit, msd_trackers_slope = calc_msd_fit(tmsd=msd_trackers)
 
         if type_analysis == "plane":
-            # print("-- Plane analysis...")
+            print("-- Plane analysis...")
             Dr = 0.1
             L = 100.0
             for var in var_list:
@@ -87,7 +88,7 @@ def analyse_folder(session_folder, type_analysis, root, vars_select, result_fold
             # if Dr != 0.01: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             #     continue  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            print("Dr:", Dr, "...")
+            print(f"Dr: {Dr} L: {L}...")
             xyz_plane = []
             t = []
             for dat_iter, dat_dir in enumerate(dat_files):
@@ -113,6 +114,8 @@ def analyse_folder(session_folder, type_analysis, root, vars_select, result_fold
                 add_result(target=msd_dict, tag="MSD error", item=msderr_plane[delta_t_i])
                 add_result(target=msd_dict, tag="freq", item=freq)
                 add_result(target=msd_dict, tag="dt", item=dt)
+                if "Dr" not in var_list:
+                    add_result(target=msd_dict, tag="Dr", item=Dr)
                 add_vars(target=msd_dict, var_list=var_list, vars_select=vars_select)
 
         print("Static analysis...")
@@ -129,12 +132,13 @@ def analyse_folder(session_folder, type_analysis, root, vars_select, result_fold
                 avg_vel = np.average(np.sqrt(np.sum(np.square(vel_cells), axis=1)), axis=0)
             else:
                 radii_cells = read_radii(data=dat_content, group_index=1)
-                cell_count = calc_cell_count(xyz_cells)
+                cell_count = len(xyz_cells)
                 r_cells = calc_r(xyz_cells)
                 r_cells_binned, phi_cells, r_cells_core = calc_phi(r_cells, radii_cells)
                 r_gyration_cells = calc_radius_gyration(xyz=xyz_cells)
 
                 xyz_ecm = read_xyz(data=dat_content, group_index=2)
+                ecm_count = len(xyz_ecm)
                 radii_ecm = read_radii(data=dat_content, group_index=2)
                 r_ecm = calc_r(xyz_ecm)
                 r_ecm_binned, phi_ecm, r_ecm_core = calc_phi(r_ecm, radii_ecm)
@@ -148,6 +152,7 @@ def analyse_folder(session_folder, type_analysis, root, vars_select, result_fold
                 add_result(target=analysis_result_dict, tag="average velocity", item=avg_vel)
             else:
                 add_result(target=analysis_result_dict, tag="cell count", item=cell_count)
+                add_result(target=analysis_result_dict, tag="ECM count", item=ecm_count)
                 add_result(target=analysis_result_dict, tag="radius of gyration", item=r_gyration_cells)
 
                 add_result(target=analysis_result_dict, tag="r cells", item=r_cells_binned.tolist())
@@ -192,58 +197,116 @@ def visualise_folder(session_folder, type_analysis, result_folder, vars_select, 
     analysis_output_dir = system_paths["output_analysis_dir"]
     res_root_dir = os.path.join(analysis_output_dir, result_folder, session_folder)
     result_df = import_resultdf(res_root_dir=res_root_dir)
+    try:
+        print_log(f"Imported data with keys {result_df.keys()}")
+    except:
+        print_log(f"No data found, run analysis first...")
+        return
     if type_analysis == "plane":
-        # MSD vs. time grouped by Dr
-        for Drval in np.unique(result_df["Dr"].values):
-            msd_dr = result_df.groupby("Dr").get_group(Drval)
-            plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD", hue="v0",
-                     show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-2, -2],
-                     t_offset=0.1, error="MSD error")
-            plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD/t", hue="v0",
-                     show=show, dpi=dpi, extra_label=f"_Dr-{Drval}", log_offsets=[-1, -1],
-                     t_offset=0.1)
-        # # General phase diagram
-        # plot_phase_diagram(session=session_label, data=result_df, rows="Dr",
-        #                    columns="v0", values="average velocity", show=show, dpi=dpi)
-        # # Velocity fluctuations in steady state
-        # plot_lineplot(session=session_label, data=result_df, x="time", y="average velocity",
-        #               hue="v0", style="Dr", show=show, dpi=dpi)
-        # # Average velocity vs. v0 | Dr
-        # plot_lineplot(session=session_label, data=result_df, x="v0", y="average velocity",
-        #               hue="Dr", style=None, show=show, dpi=dpi)
-        # plot_lineplot(session=session_label, data=result_df, x="v0", y="average velocity",
-        #               hue="Dr", style=None, show=show, dpi=dpi, loglog=True,
-        #               extra_label="_loglog")
-        # # Average velocity vs. Dr | v0
-        # plot_lineplot(session=session_label, data=result_df, x="Dr", y="average velocity",
-        #               hue="v0", style=None, show=show, dpi=dpi, logx=True, extra_label="_logx")
-        # plot_lineplot(session=session_label, data=result_df, x="Dr", y="average velocity",
-        #               hue="v0", style=None, show=show, dpi=dpi, loglog=True, extra_label="_loglog")
+        # MSD vs. time grouped by group_key
+        group_key = "rotational diffusion Dr"
+        color_key = "propulsion v0"
+        group_short = "Dr"
+
+        try:
+            test = np.unique(result_df[group_key])
+            test = np.unique(result_df[color_key])
+        except:
+            print("Old naming convention...")
+            group_key = "Dr"
+            color_key = "v0"
+
+        color_range = list(np.unique(result_df[color_key]))
+        for group_val in np.unique(result_df[group_key].values):
+            msd_dr = result_df.groupby(group_key).get_group(group_val)
+            print(f"{group_key}: {group_val}")
+            plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD", hue=color_key,
+                     show=show, dpi=dpi, extra_label=f" {group_short}={group_val}", log_offsets=[-2, -2],
+                     t_offset=0.1, error="MSD error", color_range=color_range)
+            plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD/t", hue=color_key,
+                     show=show, dpi=dpi, extra_label=f" {group_short}={group_val}", log_offsets=[-1, -1],
+                     t_offset=0.1, color_range=color_range)
+
+        # for phival in np.unique(result_df["phiecm"]):
+        #     result_df_phi = result_df.groupby("phiecm").get_group(phival)
+        #     for kceval in np.unique(result_df["kce"]):
+        #         result_df_phi_kce = result_df_phi.groupby("kce").get_group(kceval)
+        #         color_range = list(np.unique(result_df_phi_kce[color_key]))
+        #         for group_val in np.unique(result_df_phi_kce[group_key]):
+        #             msd_dr = result_df_phi_kce.groupby(group_key).get_group(group_val)
+        #             print(f"{group_key}: {group_val}")
+        #             plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD", hue=color_key,
+        #                     show=show, dpi=dpi, extra_label=f"phiecm={phival} kce={kceval} {group_short}={group_val}", log_offsets=[-2, -2],
+        #                     t_offset=0.1, error="MSD error", color_range=color_range)
+        #             plot_msd(session=session_label, data=msd_dr, x="lag time", y="MSD/t", hue=color_key,
+        #                     show=show, dpi=dpi, extra_label=f"phiecm={phival} kce={kceval} {group_short}={group_val}", log_offsets=[-1, -1],
+        #                     t_offset=0.1, color_range=color_range)
 
     else:
         x1, y1, hue1 = "r cells", "phi cells", "time"
         x2, y2, hue2 = "r ECM", "phi ECM", "time"
-
-        v1key = "v0"  # "phiecm"
-        v2key = "kce"  # "divcell"
-        v3key = "divcell"  # "divasymprob"
-        for v1 in np.unique(result_df[v1key].values):
-            for v2 in np.unique(result_df[v2key].values):
-                for v3 in np.unique(result_df[v3key].values):
-                    result_df_select = result_df.groupby(v1key).get_group(v1).groupby(v2key).get_group(v2).groupby(
-                        v3key).get_group(v3)
-                    params_label = f"{v1key}-{v1}_{v2key}-{v2}_{v3key}-{v3}"
-                    plot_profile(session=session_label, data=result_df_select, x=x1, y=y1, hue=hue1,
-                                 show=show, dpi=dpi, loglog=False, extra_label=params_label, varlabels=vars_select)
-                    plot_profile(session=session_label, data=result_df_select, x=x2, y=y2, hue=hue2,
-                                 show=show, dpi=dpi, loglog=False, extra_label=params_label, varlabels=vars_select)
-
         x3, y3 = "time", "radius of cell core"
-        plot_lineplot(session=session_label, data=result_df, x=x3, y=y3, hue=v1key, style=v2key, show=show, dpi=dpi)
-        # plot_lineplot(session=session_label, data=result_df, x="time", y="radius of gyration", hue=None,
-        #                 style=None, show=show, dpi=dpi)
-        # plot_lineplot(session=session_label, data=result_df, x="time", y="cell count", hue=None, style=None,
-        #                 show=show, dpi=dpi)
+        x4, y4 = "time", "cell count"
+        x5, y5 = "time", "ECM count"
+        vset = "phiecm"
+        # var_sweep = ["divasymprob", "phiecm", "divcell", "kce", "v0"]
+        # var_sweep = ["divcell", "kce", "v0"]
+        # var_sweep = ["phiecm", "divcell", "kce"]
+        # var_sweep = ["phiecm", "divasymprob", "divcell"]
+        # var_sweep = ["divcell", "kce", "v0"]
+        # var_sweep = ["v0", "kce", "divcell"]
+        var_sweep = ["phiecm", "divcell", "v0"]
+        print(f"Looking for {var_sweep}...")
+        # plot_lineplot(session=session_label, data=result_df, x=x3, y=y3, hue=vset, show=show, dpi=dpi)
+        # plot_lineplot(session=session_label, data=result_df, x=x4, y=y4, hue=vset, show=show, dpi=dpi)
+        # plot_lineplot(session=session_label, data=result_df, x=x5, y=y5, hue=vset, show=show, dpi=dpi)
+
+        # for vsetval in np.unique(result_df[vset].values):
+        #     print_log(f"{vset}={vsetval}")
+        #     result_df_set = result_df.groupby(vset).get_group(vsetval)
+        #     params_label = f"_{vset}={vsetval}"
+        #     plot_profile(session=session_label, data=result_df_set, x=x1, y=y1, hue=hue1, show=show, dpi=dpi, loglog=False, extra_label=params_label, varlabels=vars_select)
+        #     plot_profile(session=session_label, data=result_df_set, x=x2, y=y2, hue=hue2, show=show, dpi=dpi, loglog=False, extra_label=params_label, varlabels=vars_select)
+
+        try:
+            avail_params = []
+            for key in var_sweep:
+                if key in result_df.keys():
+                    avail_params.append(key)
+            v1key = avail_params[0]
+            v2key = avail_params[1]
+            v3key = avail_params[2]
+            print(f"Sweep parameters: {v1key, v2key, v3key}")
+
+            for vsetval in np.unique(result_df[vset].values):
+                print(f"phi={vsetval}")
+                result_df_set = result_df.groupby(vset).get_group(vsetval)
+                for var in [v1key, v2key, v3key]:
+                    if var != vset:
+                        plot_lineplot(session=session_label, data=result_df_set, x=x3, y=y3, hue=var, show=show,
+                                      dpi=dpi, extra_label=f"_{vset}={vsetval}")
+                        plot_lineplot(session=session_label, data=result_df_set, x=x4, y=y4, hue=var, show=show,
+                                      dpi=dpi, extra_label=f"{vset}={vsetval}")
+                        plot_lineplot(session=session_label, data=result_df_set, x=x5, y=y5, hue=var, show=show,
+                                      dpi=dpi, extra_label=f"{vset}={vsetval}")
+
+            # for v1 in np.unique(result_df[v1key]):
+            #     for v2 in np.unique(result_df[v2key]):
+            #         for v3 in np.unique(result_df[v3key]):
+            #             params_label = f"{v1key}-{v1}_{v2key}-{v2}_{v3key}-{v3}"
+            #             result_df_select = result_df.groupby(v1key).get_group(v1).groupby(v2key).get_group(v2).groupby(v3key).get_group(v3)
+            #             plot_profile(session=session_label, data=result_df_select, x=x1, y=y1, hue=hue1, show=show, dpi=dpi, loglog=False, extra_label=params_label, varlabels=vars_select)
+            #             plot_profile(session=session_label, data=result_df_select, x=x2, y=y2, hue=hue2, show=show, dpi=dpi, loglog=False, extra_label=params_label, varlabels=vars_select)
+
+        except:
+            print_log("Could not find (all) sweep data...")
+            plot_profile(session=session_label, data=result_df, x=x1, y=y1, hue=hue1, show=show, dpi=dpi, loglog=False,
+                         extra_label="_debug", varlabels=vars_select)
+            plot_profile(session=session_label, data=result_df, x=x2, y=y2, hue=hue2, show=show, dpi=dpi, loglog=False,
+                         extra_label="_debug", varlabels=vars_select)
+            plot_lineplot(session=session_label, data=result_df, x=x3, y=y3, show=show, dpi=dpi, extra_label=f"_debug")
+            plot_lineplot(session=session_label, data=result_df, x=x4, y=y4, show=show, dpi=dpi, extra_label=f"_debug")
+            plot_lineplot(session=session_label, data=result_df, x=x5, y=y5, show=show, dpi=dpi, extra_label=f"_debug")
 
 
 def pool_task(args, session_folder, result_folder, vars_select, root):

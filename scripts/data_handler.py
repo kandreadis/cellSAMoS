@@ -15,8 +15,11 @@ def save_dict(dict, path):
     """
     Save Python dictionary as json file
     """
-    with open(os.path.join(path, "params.json"), "w") as jsonfile:
-        json.dump(dict, jsonfile, indent=4)
+    try:
+        with open(os.path.join(path, "params.json"), "w") as jsonfile:
+            json.dump(dict, jsonfile, indent=4)
+    except:
+        print("Could not save dictionary...")
 
 
 def combine_datasets(input_dir, output_dir):

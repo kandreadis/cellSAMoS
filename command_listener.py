@@ -26,7 +26,7 @@ def open_listen_port():
             with open(task_path, 'rb') as bash_script:
                 script = bash_script.read()
             subprocess.call(script, shell=True)
-            shutil.move(task_path, os.path.join(completed_tasks_path,task))
+            shutil.move(task_path, os.path.join(completed_tasks_path, task))
             print_portstatus(f"! Completed task {task}, moving script to /completed_tasks ...")
 
 

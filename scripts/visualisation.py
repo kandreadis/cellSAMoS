@@ -69,36 +69,55 @@ def plot_scatterplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi
 
 
 def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
-             extra_label="", cmap="tab20b", log_offsets=[1, 2], log_slopes=[1, 2], t_offset=10, error=None):
+             extra_label="", cmap="nipy_spectral", log_offsets=[1, 2], log_slopes=[1, 2], t_offset=10, error=None,
+             color_range=None):
     """
     MSD visualisation
     """
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 6))
     title = f"{y} vs. {x} {extra_label}"
     plt.title(textwrap.shorten(title, width=50))
-    sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", legend="brief", palette=cmap,
-                 markeredgecolor="none")
+
+    # Draw lines
+    if color_range is not None:
+        color_palette = sns.color_palette(cmap, n_colors=len(color_range))
+        color_map = dict(zip(color_range, color_palette))
+        sns.set_palette(color_palette)
+        sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", palette=color_map, markeredgecolor="none",
+                     legend="full")
+    else:
+        sns.lineplot(data=data, x=x, y=y, hue=hue, markersize=4, marker="s", palette=cmap, markeredgecolor="none",
+                     legend="full")
+    # legend = plt.legend()
+    # for text in legend.texts:
+    #     if text.get_text() not in [min(data[hue]), max(data[hue])]:
+    #         text.set_visible(False)
+    # Draw errorbars
     if error is not None:
-        # plt.errorbar(x=data[x],y=data[y],ls="none",yerr=data[error])
         for hueval in np.unique(data[hue].values):
             hueval_df = data[data[hue] == hueval]
             plt.errorbar(hueval_df[x], hueval_df[y], color="k", linestyle="None", yerr=hueval_df[error], capsize=2,
                          elinewidth=1, alpha=0.5)
     lag_time = np.logspace(np.log10(min(data[x])), np.log10(max(data[x])))
 
+    # Draw reference lines
     for i, log_offset in enumerate(log_offsets):
+        ref_label = f"[slope {log_slopes[i]}]"
         plt.plot(lag_time, 10 ** log_offset * (lag_time / t_offset) ** log_slopes[i], linestyle="--",
-                 c=str(i / len(log_offsets)), label=f"slope {log_slopes[i]}")
-    plt.legend(title=hue)
+                 c=str(i / len(log_offsets)), label=ref_label)
+
+    # Draw rest of plot
+    handles, labels = plt.gca().get_legend_handles_labels()
+    plt.legend(handles, labels, title=hue, loc="upper left", bbox_to_anchor=(1, 1), ncol=2)
     plt.loglog()
     plt.grid(which="both", axis="both")
-    sns.move_legend(plt.gca(), "upper left", bbox_to_anchor=(1, 1))
     # plt.gca().set_aspect("equal")
     # plt.gca().set_ylim(bottom=1e-2)
     plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}{extra_label}", show)
 
 
-def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, loglog=False, logx=False, logy=False,
+def plot_lineplot(session, data, x, y, hue=None, style=None, show=True, dpi=png_res_dpi, loglog=False, logx=False,
+                  logy=False,
                   extra_label="", equal_aspect=False, cmap="rainbow"):
     """
     Line plot visualisation
@@ -113,7 +132,8 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
         if x != "time":
             sns.lineplot(data, x=x, y=y, hue=hue, style=style, legend="full", palette=cmap)
         else:
-            sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o", legend="full", palette=cmap)
+            sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o", markeredgecolor="none", legend="full",
+                         palette=cmap)
 
     if logx:
         plt.xscale("log")
@@ -126,11 +146,14 @@ def plot_lineplot(session, data, x, y, hue, style, show=True, dpi=png_res_dpi, l
         plt.grid(which="both", axis="both")
     if equal_aspect:
         plt.gca().set_aspect("equal")
-    sns.move_legend(plt.gca(), "upper left", bbox_to_anchor=(1, 1))
+    try:
+        sns.move_legend(plt.gca(), "upper left", bbox_to_anchor=(1, 1))
+    except:
+        pass
     plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}{extra_label}", show)
 
 
-def plot_profile(varlabels, session, data, x, y, hue, show=True, dpi=png_res_dpi, loglog=False, extra_label=""):
+def plot_profile(varlabels, session, data, x, y, hue=None, show=True, dpi=png_res_dpi, loglog=False, extra_label=""):
     """
     Profile plot visualisation
     """

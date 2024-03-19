@@ -13,8 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Enable SAMoS execution. This is useful to first look at the result folder structure during debugging
-    default_folder_name = f"{date.now().strftime('%Y%m%d')}"
-    parser.add_argument("-path", type=str, default=default_folder_name, help="Group folder name?")
+    parser.add_argument("session", type=str, help="Session folder name?")
     # Debugging overwrites the previous folder
     parser.add_argument("-debug", action="store_true", help="Debug: Overwrite previous output?")
 
@@ -97,7 +96,7 @@ if __name__ == "__main__":
         args.v3type = "custom"
     args.tumoroid_ecm = True
     if args.track:
-        args.path += "_tracked"
+        args.session += "_tracked"
 
     # User input processing logic
     global_parameters = {}
@@ -124,7 +123,7 @@ if __name__ == "__main__":
         elif sweep_type == 3:
             parameter_3D_sweep[var] = args.__dict__[var]
     enable_samos_exec = not global_parameters["disable_samos"]
-    group_folder = global_parameters["path"]
+    group_folder = global_parameters["session"]
     debug = global_parameters["debug"]
 
     # Execution of main samos handling script(s).

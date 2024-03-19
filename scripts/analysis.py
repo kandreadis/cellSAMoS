@@ -18,13 +18,6 @@ def calc_radius_gyration(xyz):
     return np.sqrt(np.sum(np.square(xyz)) / len(xyz))
 
 
-def calc_cell_count(xyz):
-    """
-    Calculates number of cells for a set of xyz coordinates given as numpy matrix Nx3
-    """
-    return len(xyz)
-
-
 def linear_fit(x, a, b):
     """
     Linear fitting function with slope a and offset b
@@ -152,20 +145,23 @@ def calc_phi(r, radius):
     """
     Calculates the density profile for a set of distances (wrt. C.M.) and radii, both numpy matrices with length N
     """
-    r_max = np.max(r)
-    dr = 2 * np.average(radius)
-    r_bins = np.arange(dr, r_max + dr, dr)
-    shell_surface = 4 * np.pi * r_bins ** 2
-    shell_volume = dr * shell_surface
-    in_shell = (r_bins - dr / 2 <= r[:, np.newaxis]) & (r[:, np.newaxis] <= r_bins + dr / 2)
-    particles_volume = np.einsum("ij, i->j", in_shell, (4 / 3) * np.pi * radius ** 3)
-    phi = particles_volume / shell_volume
-    phi /= np.max(phi)
-    try:
-        r_core = min(r_bins[phi <= 1 / np.e])
-    except:
-        r_core = None
-    return r_bins, phi, r_core
+    if len(r) == 1:
+        return np.array([]), np.array([]), None
+    else:
+        r_max = np.max(r)
+        dr = 2 * np.average(radius)
+        r_bins = np.arange(dr, r_max + dr, dr)
+        shell_surface = 4 * np.pi * r_bins ** 2
+        shell_volume = dr * shell_surface
+        in_shell = (r_bins - dr / 2 <= r[:, np.newaxis]) & (r[:, np.newaxis] <= r_bins + dr / 2)
+        particles_volume = np.einsum("ij, i->j", in_shell, (4 / 3) * np.pi * radius ** 3)
+        phi = particles_volume / shell_volume
+        phi /= np.max(phi)
+        try:
+            r_core = min(r_bins[phi <= 1 / np.e])
+        except:
+            r_core = None
+        return r_bins, phi, r_core
 
 
 def calc_radius_fit(r):

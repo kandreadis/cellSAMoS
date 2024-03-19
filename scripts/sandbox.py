@@ -13,43 +13,29 @@ output = "/data1/andreadis/analysis_results/processed_data/andreadis_merged/merg
 
 combine_datasets(input, output)
 
-# # from samos_init import initialise_cells
-# # collective = initialise_cells.Plane(L=100, phi=1.0, cell_radius=1.0, poly=0.3).cells
-# # initialise_cells.save_initial_cells(collective, "test.txt")
-#
-# from analysis import calc_msd
-#
-# total_time = 100
-# freq = 100
-# dt = 0.01
-# time_steps = np.arange(total_time/(freq * dt))
-#
-# tnxyztest = np.ones((len(time_steps), 10, 3))
-# # tnxyztest += np.random.uniform(0,1,size=(3)) * time_steps[:, np.newaxis, np.newaxis]
-# t = time_steps * dt*freq
-# delta_t, tmsd = calc_msd(tnxyz=tnxyztest, L=100.0, t=t, tau=1 / 0.1, freqdt=freq * dt, substract_CM=False)
-# tmsd_standard = np.mean(np.square(np.linalg.norm(tnxyztest - tnxyztest[0], axis=2)), axis=1)
-# print(delta_t)
-# plt.figure()
-# plt.plot(delta_t, tmsd, label="averaged")
-# # plt.plot(np.log10(t), np.log10(tmsd_standard), label="simplified")
-# plt.loglog()
-# plt.legend()
-# plt.grid(which="both")
-# plt.show()
-# # log = np.logspace(np.log10(0.01), np.log10(1), 10)
-# # plt.plot(log, "o-")
-# # plt.yscale("log")
-# # plt.show()
-# # test = pd.read_csv("test.txt", header=0, sep='\s+')
-# # plt.figure()
-# # plt.title("Initial particle configuration")
-# # plt.scatter(test["x"].values, test["y"].values, c=test["z"].values, cmap="Dark2")
-# # plt.colorbar()
-# # plt.grid()
-# # plt.axhline(0, linestyle="--", c="k")
-# # plt.axvline(0, linestyle="--", c="k")
-# # plt.xticks(np.linspace(min(test["x"]), max(test["x"]), 6))
-# # plt.yticks(np.linspace(min(test["y"]), max(test["y"]), 6))
-# # plt.gca().set_aspect("equal")
-# # plt.show()
+# # # General phase diagram
+# plot_phase_diagram(session=session_label, data=result_df, rows="Dr",
+#                    columns="v0", values="average velocity", show=show, dpi=dpi)
+# # Velocity fluctuations in steady state
+# plot_lineplot(session=session_label, data=result_df, x="time", y="average velocity",
+#               hue="v0", style="Dr", show=show, dpi=dpi)
+# # Average velocity vs. v0 | Dr
+# plot_lineplot(session=session_label, data=result_df, x="v0", y="average velocity",
+#               hue="Dr", style=None, show=show, dpi=dpi)
+# plot_lineplot(session=session_label, data=result_df, x="v0", y="average velocity",
+#               hue="Dr", style=None, show=show, dpi=dpi, loglog=True,
+#               extra_label="_loglog")
+# # Average velocity vs. Dr | v0
+# plot_lineplot(session=session_label, data=result_df, x="Dr", y="average velocity",
+#               hue="v0", style=None, show=show, dpi=dpi, logx=True, extra_label="_logx")
+# plot_lineplot(session=session_label, data=result_df, x="Dr", y="average velocity",
+#               hue="v0", style=None, show=show, dpi=dpi, loglog=True, extra_label="_loglog")
+
+
+# time_range = np.unique(result_df["lag time"])
+# sample_range = 10.0**np.arange(-1, 7)
+# for t in time_range:
+#     if t in sample_range:
+#         print(t)
+
+# result_df = result_df[result_df["lag time"].isin(sample_range)]

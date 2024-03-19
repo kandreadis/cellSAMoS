@@ -18,17 +18,18 @@ system_paths = {
     "init_particles_file": "/data1/andreadis/CellSim/samos_init/initialise_cells.py",
     "init_tumoroid_ecm_file": "/data1/andreadis/CellSim/samos_init/initialise_tumoroid_ECM.py",
     # Path of terminal output logging file ".../*.log"
-    "log_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/cellsim.log",
+    "log_file": "/data1/andreadis/Dropbox/CELLSIM_PORT/cellsim.log",
     # Path of port status logging file ".../*.log"
-    "port_status_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/port_status.log",
+    "port_status_file": "/data1/andreadis/Dropbox/CELLSIM_PORT/port_status.log",
     # Path of folder structure logging file(s) ".../*.log"
-    "output_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/samos-output_dir-tree.log",
-    "analysis_dirstatus_file":"/data1/andreadis/Dropbox/CELLSIM_PORT/analysis-output_dir-tree.log",
+    "output_dirstatus_file": "/data1/andreadis/Dropbox/CELLSIM_PORT/samos-output_dir-tree.log",
+    "analysis_dirstatus_file": "/data1/andreadis/Dropbox/CELLSIM_PORT/analysis-output_dir-tree.log",
     # Path where analysis results should be saved ".../figures"
     "output_analysis_dir": "/data1/andreadis/analysis_results/processed_data",
     "output_figures_dir": "/data1/andreadis/analysis_results/figures",
+    "output_movie_dir": "/data1/andreadis/analysis_results/movies",
     # Path to listen to for new .sh bash commands ".../PORT"
-    "listen_dir":"/data1/andreadis/Dropbox/CELLSIM_PORT",
+    "listen_dir": "/data1/andreadis/Dropbox/CELLSIM_PORT",
     # Path where all completed tasks should be moved to ".../completed"
-    "completed_tasks_dir":"/data1/andreadis/Dropbox/CELLSIM_PORT/completed_tasks"
+    "completed_tasks_dir": "/data1/andreadis/Dropbox/CELLSIM_PORT/completed_tasks"
 }

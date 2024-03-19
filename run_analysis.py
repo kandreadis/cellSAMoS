@@ -21,11 +21,13 @@ def run_analysis():
         "phiecm": ["ECM packing fraction phi", float],
         "kce": ["stiffness cell-ECM kce", float],
         "divcell": ["cell division rate", float],
+        "divasymprob": ["ECM secretion vs cell division", float],
         "v0": ["propulsion v0", float],
         "Ntrack": ["track cell count", int],
         "Dr": ["rotational diffusion Dr", float],
         "re": ["potential re factor", float],
-        "Ntrack": ["track cell count", int]
+        "Ntrack": ["track cell count", int],
+        "phi": ["plane packing fraction phi", float]
     }
     # Interpret arguments given by the user when this script is run
     parser = argparse.ArgumentParser()
