@@ -44,16 +44,7 @@ Small notes:
 - _**PATH_TO_CLONE** is the path to your clone of cellSAMoS._
 - _Replace **python** with the path to your python interpreter._
 
-There are two ways of executing cellSAMoS:
-
-1. Execute **command_listener.py**, and this will continiously listen to
-   any added bash scripts in paths_init.py/system_paths["listen_dir"]. Upon execution, results are synced live.
-
-```bash
-python PATH_TO_CLONE/run_samos.py
-```
-
-2. Or, execute **run_samos.py** with any parameter (range(s)) you prefer.
+Or, execute **run_samos.py** with any parameter (range(s)) you prefer.
 
 ```bash
 python PATH_TO/run_samos.py

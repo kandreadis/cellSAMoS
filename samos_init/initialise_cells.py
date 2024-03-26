@@ -92,10 +92,12 @@ class Spheroid:
             cell.velocity = [vx, vy, vz]
             cell.direction = [nx, ny, nz]
 
+
 class Plane:
     """
     A plane is initialised using a population(collective) of cells.
     """
+
     def __init__(self, L, phi, cell_radius, poly):
         self.L = L
         self.cell_radius = cell_radius
@@ -113,6 +115,7 @@ class Plane:
             cell.position = [x, y, z]
             cell.velocity = [0.0, 0.0, 0.0]
             cell.direction = [np.cos(alpha), np.sin(alpha), 0.0]
+
 
 def plot_initial_cells(particles_list):
     """

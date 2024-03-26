@@ -3,7 +3,6 @@ Executes SAMoS with initial (particle) configuration parameter ranges/values.
 Author: Konstantinos Andreadis
 """
 import argparse
-from datetime import datetime as date
 from scripts.communication_handler import print_log
 from scripts.samos_handler import run_sweep
 
@@ -88,11 +87,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.v1custom != []:
+    if args.v1custom:
         args.v1type = "custom"
-    if args.v2custom != []:
+    if args.v2custom:
         args.v2type = "custom"
-    if args.v3custom != []:
+    if args.v3custom:
         args.v3type = "custom"
     args.tumoroid_ecm = True
     if args.track:

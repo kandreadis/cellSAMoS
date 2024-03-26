@@ -1,5 +1,5 @@
-pandas
 numpy
-seaborn
+pandas
 matplotlib
-SciPy
+seaborn
+cv2

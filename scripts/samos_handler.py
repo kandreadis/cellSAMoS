@@ -4,7 +4,6 @@ Handler for all samos executions.
 Author: Konstantinos Andreadis
 """
 import os, re
-from datetime import datetime as date
 import numpy as np
 import samos_init.initialise_cells as init_cells
 import samos_init.initialise_tumoroid_ECM as init_tumoroid_ecm
@@ -46,8 +45,8 @@ def run_simulation(params, group_folder, session, naming_conv, run_samos=True):
         os.makedirs(result_dir)
     except:
         print_log("Result directory already exists, overwriting...")
-    save_dict(dict=params, path=session_dir)
-    save_dict(dict=params, path=result_dir)
+    save_dict(params_dict=params, path=session_dir)
+    save_dict(params_dict=params, path=result_dir)
     # Creates path for copied configuration file
     new_configuration_dir = os.path.join(result_dir, "configuration.conf")
     # Creates path for copied initialisation script
@@ -125,7 +124,7 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
             session_label = "debug"
             param_pair_label = "debug"
         processes.append(pool.apply_async(func=run_simulation, args=(
-        params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
+            params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     if sweep_type == 1:
         if parameter_1D_sweep["v1type"] == "custom":
@@ -146,13 +145,13 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
         for var1_idx, var1 in enumerate(v1range):
             progress = f"{round(100 * var1_idx / (len(v1range)))} %"
             status = "{} {}".format(parameter_1D_sweep["v1"], var1)
-            progress_msg = f"[{progress}] --- {status} ---"
+            progress_msg = f"[{progress}] Initialising --- {status} ---"
             print_log(progress_msg)
             params_dict = copy.deepcopy(global_parameters)
             params_dict[parameter_3D_sweep["v1"]] = var1
             param_pair_label = create_samos_folder_name(folder_values=folder_values, global_parameters=params_dict)
             processes.append(pool.apply_async(func=run_simulation, args=(
-            params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
+                params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     if sweep_type == 2:
         if parameter_2D_sweep["v1type"] == "custom":
@@ -193,14 +192,14 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                 i_progress += 1
                 progress = f"{round(100 * i_progress / (len(v1range) * len(v2range)))} %"
                 status = "{} {} {} {}".format(parameter_2D_sweep["v1"], var1, parameter_2D_sweep["v2"], var2)
-                progress_msg = f"[{progress}] --- {status} ---"
+                progress_msg = f"[{progress}] Initialising --- {status} ---"
                 print_log(progress_msg)
                 params_dict = copy.deepcopy(global_parameters)
                 params_dict[parameter_3D_sweep["v1"]] = var1
                 params_dict[parameter_3D_sweep["v2"]] = var2
                 param_pair_label = create_samos_folder_name(folder_values=folder_values, global_parameters=params_dict)
                 processes.append(pool.apply_async(func=run_simulation, args=(
-                params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
+                    params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     if sweep_type == 3:
         if parameter_3D_sweep["v1type"] == "custom":
@@ -260,7 +259,7 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                     progress = f"{round(100 * i_progress / (len(v1range) * len(v2range) * len(v3range)))} %"
                     status = "{} {} {} {} {} {}".format(parameter_3D_sweep["v1"], var1, parameter_3D_sweep["v2"], var2,
                                                         parameter_3D_sweep["v3"], var3)
-                    progress_msg = f"[{progress}] --- {status} ---"
+                    progress_msg = f"[{progress}] Initialising --- {status} ---"
                     print_log(progress_msg)
                     params_dict = copy.deepcopy(global_parameters)
                     params_dict[parameter_3D_sweep["v1"]] = var1
@@ -269,7 +268,7 @@ def run_sweep(sweep_type, global_parameters, parameter_1D_sweep, parameter_2D_sw
                     param_pair_label = create_samos_folder_name(folder_values=folder_values,
                                                                 global_parameters=params_dict)
                     processes.append(pool.apply_async(func=run_simulation, args=(
-                    params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
+                        params_dict, group_folder, session_label, param_pair_label, enable_samos_exec)))
 
     for p in processes:
         p.get()

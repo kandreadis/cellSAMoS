@@ -2,7 +2,6 @@
 Visualisation and Analysis of SAMoS simulation results.
 Author: Konstantinos Andreadis
 """
-from paths_init import system_paths
 from scripts.communication_handler import print_log
 from scripts.batch_analysis import analyse_root_subfolders
 import argparse
@@ -26,7 +25,6 @@ def run_analysis():
         "Ntrack": ["track cell count", int],
         "Dr": ["rotational diffusion Dr", float],
         "re": ["potential re factor", float],
-        "Ntrack": ["track cell count", int],
         "phi": ["plane packing fraction phi", float]
     }
     # Interpret arguments given by the user when this script is run

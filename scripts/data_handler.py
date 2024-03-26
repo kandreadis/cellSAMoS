@@ -11,15 +11,28 @@ from scripts.communication_handler import print_log
 import ast
 
 
-def save_dict(dict, path):
+def save_dict(params_dict, path):
     """
     Save Python dictionary as json file
     """
     try:
         with open(os.path.join(path, "params.json"), "w") as jsonfile:
-            json.dump(dict, jsonfile, indent=4)
+            json.dump(params_dict, jsonfile, indent=4)
     except:
-        print("Could not save dictionary...")
+        print_log("Could not save dictionary...")
+
+
+def read_params_dict(path):
+    """
+    Read Python dictionary from json file
+    """
+    try:
+        with open(os.path.join(path, "params.json"), "r") as jsonfile:
+            params = json.load(jsonfile)
+    except:
+        print_log("Could not open dictionary...")
+        params = {}
+    return params
 
 
 def combine_datasets(input_dir, output_dir):
@@ -28,7 +41,7 @@ def combine_datasets(input_dir, output_dir):
     """
     pd_input = [pd.read_csv(os.path.join(input_dir, path, "measurements.csv")) for path in os.listdir(input_dir)]
     pd.concat(pd_input).to_csv(os.path.join(output_dir, "measurements.csv"))
-    print(f"Combined {len(input_dir)} dataframes into one in {output_dir} !")
+    print_log(f"Combined {len(input_dir)} dataframes into one in {output_dir} !")
 
 
 def read_dat(path):
@@ -100,12 +113,15 @@ def add_vars(target, var_list, vars_select):
                 add_result(target=target, tag=varsel, item=var_val)
 
 
-def import_resultdf(res_root_dir):
+def import_resultdf(res_root_dir, name):
+    """
+    Import a result dataframe
+    """
     try:
-        result_df = pd.read_csv(os.path.join(res_root_dir, "measurements.csv"))
+        result_df = pd.read_csv(os.path.join(res_root_dir, name))
     except:
         print_log("Not yet processed, run -analysis first!")
-        return
+        return None
 
     for key in result_df.keys():
         try:
@@ -114,3 +130,37 @@ def import_resultdf(res_root_dir):
         except:
             pass
     return result_df
+
+
+def read_dr_l(var_list):
+    """
+    Read Dr and L from a variable list
+    """
+    Dr = 0.1
+    L = 100.0
+    for var in var_list:
+        if "Dr" in var:
+            Dr = float(var.split("-")[1])
+        if "L" in var:
+            L = float(var.split("-")[1])
+    return Dr, L
+
+
+def dict2dataframe(measurement_dict):
+    """
+    Converts dictionary to a dataframe
+    """
+    df = pd.DataFrame.from_dict(measurement_dict, orient="columns")
+    return df
+
+
+def dataframe2csv(res_root_dir, df, csv_filename):
+    """
+    Converts dataframe to csv spreadsheet
+    """
+    try:
+        os.makedirs(res_root_dir)
+    except:
+        pass
+
+    df.to_csv(os.path.join(res_root_dir, csv_filename), index=False)

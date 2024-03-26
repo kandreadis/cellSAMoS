@@ -17,12 +17,15 @@ import numpy as np
 png_res_dpi = 300
 
 
-def create_png_path(session_label, plot_label):
+def create_png_path(session_label, plot_label, type_plot=None):
     """
     Figure saving path creation.
     """
     root_dir = system_paths["output_figures_dir"]
     save_dir = os.path.join(root_dir, session_label)
+    if type_plot is not None:
+        type_plot = type_plot.replace("/", "div")
+        save_dir = os.path.join(save_dir, type_plot)
     try:
         os.makedirs(save_dir)
     except:
@@ -33,7 +36,7 @@ def create_png_path(session_label, plot_label):
     return full_path
 
 
-def plot_handler(session, dpi, label, show):
+def plot_handler(session, dpi, label, show, type_plot=None):
     """
     Resizes font, changes layout and saves figure. If show is True, it also displays the plot.
     """
@@ -41,7 +44,7 @@ def plot_handler(session, dpi, label, show):
     plt.rc('axes', labelsize=14)  # fontsize of the x and y labels
     plt.rc('figure', titlesize=14)  # fontsize of the figure title
     plt.tight_layout()
-    plt.savefig(create_png_path(session, label), dpi=dpi, bbox_inches="tight")
+    plt.savefig(create_png_path(session, label, type_plot), dpi=dpi, bbox_inches="tight")
     if show:
         plt.show()
     else:
@@ -94,10 +97,14 @@ def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
     #         text.set_visible(False)
     # Draw errorbars
     if error is not None:
-        for hueval in np.unique(data[hue].values):
-            hueval_df = data[data[hue] == hueval]
-            plt.errorbar(hueval_df[x], hueval_df[y], color="k", linestyle="None", yerr=hueval_df[error], capsize=2,
-                         elinewidth=1, alpha=0.5)
+        if hue is not None:
+            for hueval in np.unique(data[hue].values):
+                hueval_df = data[data[hue] == hueval]
+                plt.errorbar(hueval_df[x], hueval_df[y], color="k", linestyle="None", yerr=hueval_df[error], capsize=2,
+                             elinewidth=1, alpha=0.5)
+        else:
+            plt.errorbar(data[x], data[y], color="k", linestyle="None", yerr=data[error], capsize=2, elinewidth=1,
+                         alpha=0.5)
     lag_time = np.logspace(np.log10(min(data[x])), np.log10(max(data[x])))
 
     # Draw reference lines
@@ -113,12 +120,11 @@ def plot_msd(session, data, x, y, hue, show=True, dpi=png_res_dpi,
     plt.grid(which="both", axis="both")
     # plt.gca().set_aspect("equal")
     # plt.gca().set_ylim(bottom=1e-2)
-    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}{extra_label}", show)
+    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}{extra_label}", show, type_plot=y)
 
 
 def plot_lineplot(session, data, x, y, hue=None, style=None, show=True, dpi=png_res_dpi, loglog=False, logx=False,
-                  logy=False,
-                  extra_label="", equal_aspect=False, cmap="rainbow"):
+                  logy=False, extra_label="", equal_aspect=False, cmap="rainbow"):
     """
     Line plot visualisation
     """
@@ -133,7 +139,7 @@ def plot_lineplot(session, data, x, y, hue=None, style=None, show=True, dpi=png_
             sns.lineplot(data, x=x, y=y, hue=hue, style=style, legend="full", palette=cmap)
         else:
             sns.lineplot(data, x=x, y=y, hue=hue, style=style, marker="o", markeredgecolor="none", legend="full",
-                         palette=cmap)
+                         palette=cmap, markersize=1)
 
     if logx:
         plt.xscale("log")
@@ -150,7 +156,7 @@ def plot_lineplot(session, data, x, y, hue=None, style=None, show=True, dpi=png_
         sns.move_legend(plt.gca(), "upper left", bbox_to_anchor=(1, 1))
     except:
         pass
-    plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}{extra_label}", show)
+    plot_handler(session, dpi, f"line_{hue}_{style}_for_{y}_vs_{x}{extra_label}", show, type_plot=y)
 
 
 def plot_profile(varlabels, session, data, x, y, hue=None, show=True, dpi=png_res_dpi, loglog=False, extra_label=""):
@@ -171,7 +177,7 @@ def plot_profile(varlabels, session, data, x, y, hue=None, show=True, dpi=png_re
     plt.ylabel(y)
     if loglog:
         plt.loglog()
-    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}{extra_label}", show)
+    plot_handler(session, dpi, f"line_{hue}_for_{y}_vs_{x}{extra_label}", show, type_plot=y)
 
 
 def plot_heatmap(session, data, rows, columns, values, show=True, cmap="coolwarm", dpi=png_res_dpi):

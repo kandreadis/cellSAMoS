@@ -5,24 +5,15 @@ Author: Konstantinos Andreadis
 """
 
 import numpy as np
-from scipy.optimize import curve_fit
 
 
 # from numba import njit
-
 
 def calc_radius_gyration(xyz):
     """
     Calculates radius of gyration for a set of xyz coordinates given as numpy matrix Nx3
     """
     return np.sqrt(np.sum(np.square(xyz)) / len(xyz))
-
-
-def linear_fit(x, a, b):
-    """
-    Linear fitting function with slope a and offset b
-    """
-    return a * x + b
 
 
 def cm_removal(tnxyz):
@@ -116,21 +107,6 @@ def calc_msd(tnxyz, L, t, tau, freqdt, substract_CM=False, debug=False):
     return delta_t, tmsd, tmsderr
 
 
-def calc_msd_fit(tmsd):
-    """
-    Fits a line through the mean squared displacement (MSD) given as numpy array with length t
-    """
-    log_time = np.log10(np.arange(0, len(tmsd)))[1:]
-    log_msd = np.log10(tmsd)[1:]
-    popt, pcov = curve_fit(linear_fit, log_time, log_msd)
-    log_slope = popt[0]
-    log_offset = popt[1]
-
-    tmsd_fit = np.zeros_like(tmsd)
-    tmsd_fit[1:] = 10 ** (log_time * log_slope + log_offset)
-    return tmsd_fit, log_slope
-
-
 def calc_r(xyz):
     """
     Calculates the distances for a set of xyz coordinates given as numpy matrix Nx3 wrt. the COM
@@ -146,7 +122,7 @@ def calc_phi(r, radius):
     Calculates the density profile for a set of distances (wrt. C.M.) and radii, both numpy matrices with length N
     """
     if len(r) == 1:
-        return np.array([]), np.array([]), None
+        return np.array([]), np.array([]), None, None
     else:
         r_max = np.max(r)
         dr = 2 * np.average(radius)
@@ -161,14 +137,5 @@ def calc_phi(r, radius):
             r_core = min(r_bins[phi <= 1 / np.e])
         except:
             r_core = None
-        return r_bins, phi, r_core
-
-
-def calc_radius_fit(r):
-    """
-    Calculates the core, max and standard deviation (of) radii for a set of radii as numpy matrix N
-    """
-    r_core = np.median(r)
-    r_max = np.max(r)
-    r_std = np.std(r)
-    return r_core, r_max, r_std
+        r_invasion = r_max
+        return r_bins, phi, r_core, r_invasion

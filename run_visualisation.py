@@ -1,7 +1,10 @@
+"""
+3D rendering of SAMoS simulation results.
+Author: Konstantinos Andreadis
+"""
 import os
 import numpy as np
 import pandas as pd
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import argparse
 import cv2
@@ -23,6 +26,9 @@ def read_dat(path):
 
 
 def plot_particles(folder_path, movie_dir, args):
+    """
+    Plot all particles
+    """
     L = args.L
     maxframes = args.maxframes
     lastframe = args.lastframe
@@ -50,7 +56,7 @@ def plot_particles(folder_path, movie_dir, args):
             print("No files present... Aborting!")
             return
     else:
-        if maxframes != None:
+        if maxframes is not None:
             files = files[:maxframes]
     print_log(f"-- Visualising {len(files)} in {folder_name}...")
     for file in files:
@@ -140,6 +146,9 @@ def plot_particles(folder_path, movie_dir, args):
 
 
 def main():
+    """
+    Main function
+    """
     parser = argparse.ArgumentParser(description='Visualize particles in 3D')
     parser.add_argument('session_folders', type=str, help='Path to the session folder(s)?', nargs='*')
     parser.add_argument('-Ncores', type=int, default=8, help='Number of cores')
@@ -180,7 +189,7 @@ def main():
                 pass
             for run in samos_run_path:
                 processes.append(pool.apply_async(func=plot_particles, args=(
-                os.path.join(system_paths["output_samos_dir"], session, folder_path, run), movie_path, args)))
+                    os.path.join(system_paths["output_samos_dir"], session, folder_path, run), movie_path, args)))
 
     for p in processes:
         p.get()

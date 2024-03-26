@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
+
 def save_initial_cells(cells_data, outfile):
     """
     Writes a .txt file containing the initial particle configuration.
@@ -56,7 +57,7 @@ class Spheroid:
         self.spheroid_radius = (self.cell_N / 0.74) ** (1 / 3) * self.cell_radius
 
         self.cells = [Cell(idx=i, type_idx=1) for i in range(int(self.cell_N))]
-        
+
         # Initialise ECM
         self.ecm_radius = ecm_radius
         self.ecm_poly = ecm_poly
@@ -67,7 +68,7 @@ class Spheroid:
         self.ecm_lz = size_box
         self.ecm_volume = self.ecm_lx * self.ecm_ly * self.ecm_lz
 
-        self.ecm_N = int(self.ecm_phi * self.ecm_volume / ((4/3) * np.pi * self.ecm_radius ** 3))
+        self.ecm_N = int(self.ecm_phi * self.ecm_volume / ((4 / 3) * np.pi * self.ecm_radius ** 3))
         self.cells.extend(Cell(idx=j, type_idx=2) for j in range(self.cell_N, self.cell_N + self.ecm_N))
 
         def un(a, b):
@@ -83,7 +84,7 @@ class Spheroid:
                 x = self.ecm_lx * un(-0.5, 0.5)
                 y = self.ecm_ly * un(-0.5, 0.5)
                 z = self.ecm_lz * un(-0.5, 0.5)
-                if x**2+y**2+z**2 <= self.spheroid_radius**2:
+                if x ** 2 + y ** 2 + z ** 2 <= self.spheroid_radius ** 2:
                     invalid_ecm.append(index)
             else:
                 phi = un(0, 2 * np.pi)
@@ -105,7 +106,7 @@ class Spheroid:
                 cell.radius = self.ecm_radius * un(1 - 0.5 * self.ecm_poly, 1 + 0.5 * self.ecm_poly)
             else:
                 cell.radius = self.cell_radius * un(1 - 0.5 * self.cell_poly, 1 + 0.5 * self.cell_poly)
-            
+
             cell.position = [x, y, z]
             cell.velocity = [vx, vy, vz]
             cell.direction = [nx, ny, nz]
@@ -115,7 +116,9 @@ class Spheroid:
                 del self.cells[invalid_ecm_idx]
             for idx, cell in enumerate(self.cells):
                 cell.idx = idx
-            print(f"- ECM: Deleted {len(invalid_ecm)}, {self.ecm_N-len(invalid_ecm)} left!")
+            print(f"- ECM: Deleted {len(invalid_ecm)}, {self.ecm_N - len(invalid_ecm)} left!")
+
+
 def plot_initial_cells(particles_list):
     """
     Basic 3D visualisation of initial cell configuration for debugging purposes.
@@ -142,13 +145,13 @@ parser.add_argument("-r_ecm", type=float, default=1.0, help="ECM radius?")
 parser.add_argument("-poly_ecm", type=float, default=0.3, help="ECM radius poly?")
 parser.add_argument("-plot", action="store_true", help="Plot configuration?")
 
-
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    all_particles = Spheroid(cell_N=args.N_cell, cell_radius=args.r_cell, cell_poly=args.poly_cell, 
-                            ecm_phi=args.phi_ecm, ecm_radius=args.r_ecm, ecm_poly=args.poly_ecm, ecm_size=args.ecm_size).cells
+    all_particles = Spheroid(cell_N=args.N_cell, cell_radius=args.r_cell, cell_poly=args.poly_cell,
+                             ecm_phi=args.phi_ecm, ecm_radius=args.r_ecm, ecm_poly=args.poly_ecm,
+                             ecm_size=args.ecm_size).cells
 
-    save_initial_cells(cells_data=all_particles,outfile="particles.txt")
+    save_initial_cells(cells_data=all_particles, outfile="particles.txt")
     if args.plot:
         plot_initial_cells(all_particles)

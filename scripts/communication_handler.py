@@ -10,6 +10,9 @@ from paths_init import system_paths
 
 
 def create_samos_folder_name(folder_values, global_parameters):
+    """
+    Creates SAMoS folder name according to convention
+    """
     param_pair_label = ""
     for i, varname in enumerate(folder_values):
         param_pair_label += f"{varname}-{global_parameters[varname]}"
@@ -31,6 +34,22 @@ def print_log(message):
     except:
         print("Could not log progress...")
     print(message)
+
+
+def print_progressbar(idx, idxmax):
+    """
+    Prints progress bar
+    """
+    progress_bar = "[__________]"
+    progress = 10 * (idx + 1) / idxmax
+    if round(progress, 1) in range(11):
+        str_list = list(progress_bar)
+        if progress > 0:
+            for i in range(int(progress)):
+                str_list[i + 1] = "="
+        progress_bar = "".join(str_list)
+        print_log(f"-- Processing {progress_bar}")
+    return
 
 
 def print_dirstatus(message, tree_type):
